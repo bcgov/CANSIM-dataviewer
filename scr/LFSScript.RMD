@@ -148,6 +148,23 @@ MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(URLast = LastMonthUR(V92
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(URLastYear = LastYearUR(V922))
 
 
+# Rename variables for better readability
+
+MonthlyLFSx1 <- rename(MonthlyLFSx1,Employment=V16)
+MonthlyLFSx1 <- rename(MonthlyLFSx1,UnRate=V922)
+
+# Create new table for the line graph, which retains a working date format
+
+MonthlyLFSx2 <- MonthlyLFSx1
+MonthlyLFSx2$Date2 <- as.Date(as.yearmon(MonthlyLFSx2$t, format = "%Y/%m"))
+
+```
+
+
+Gender and Youth tabs
+
+```{r}
+
 # Create stuff for Gender tab
 
 GenderTable <- MonthlyLFSx %>% select(t,Date,i,V982,V1027,V77,V122,V523,V568)
@@ -188,19 +205,10 @@ IndustryTable <- IndustryLFSx %>% select(t,Date,i,V1,V6,V11,V16,V21,V26,V31,V36,
 
 
 
-# Rename variables for better readability
-
-MonthlyLFSx1 <- rename(MonthlyLFSx1,Employment=V16)
-MonthlyLFSx1 <- rename(MonthlyLFSx1,UnRate=V922)
-
-# Create new table for the line graph, which retains a working date format
-
-MonthlyLFSx2 <- MonthlyLFSx1
-MonthlyLFSx2$Date2 <- as.Date(as.yearmon(MonthlyLFSx2$t, format = "%Y/%m"))
 
 # Rounding figures and suppressing scientific notation
 
-MonthlyLFSx1 <- format(MonthlyLFSx1, big.mark=",", scientific=FALSE, TRIM=TRUE)
+#MonthlyLFSx1 <- format(MonthlyLFSx1, big.mark=",", scientific=FALSE, TRIM=TRUE)
 
 # MonthlyLFSx1$Var2 <- as.double(as.POSIXct(as.Date(MonthlyLFSx$Date,"%Y-%m-%d")),origin="1976-01-01")
 
@@ -221,9 +229,32 @@ wide_UnRate <- MonthlyLFSx2 %>% select(Date,i,UnRate) %>% spread(i,UnRate)
 saveRDS(wide_UnRate, "../data/wideUnRate.rds")
 saveRDS(MonthlyLFSx1, "../data/MonthlyLFSx1.rds")
 saveRDS(MonthlyLFSx2, "../data/MonthlyLFSx2.rds")
+saveRDS(IndustryTable, "../data/IndustryTable.rds")
+
+
+YouthTable
+GenderTable
+
+```
+
+
+---
+
+## Data Tables
+
+
+```{r}
+
+# monthly provincial employment and unemployment rate 
+
+MonthlyLFSx1 %>% 
+  filter(Date == max(Date)) %>%
+  select(t, Date,i,Employment,UnRate) %>%
+  arrange(UnRate)
 
 
 ```
+
 
 
 ### The Shiny app
