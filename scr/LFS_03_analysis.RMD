@@ -76,7 +76,7 @@ GenderTable <- readRDS("../data/GenderTable.rds")
 
 ```{r}
 
-# monthly provincial employment and unemployment rate 
+# provincial and national - total employment and unemployment rate 
 
 MonthlyLFSx1 %>% 
   filter(Date == max(Date)) %>%
