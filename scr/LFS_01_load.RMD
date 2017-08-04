@@ -1,0 +1,85 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This series of code chunks reads specific LFS data tables from CANSIM, and wrangles them into shape for further analysis.
+
+
+#### packages
+
+```{r}
+
+
+library(tidyverse)
+
+library(CANSIM2R) # this package downloads CANSIM tables
+library(zoo) #to deal with dates that only have year and month, with no days
+library(Hmisc) # need this package to read labels
+
+# holdovers from original file
+#library(DT)
+#library(car)
+#library(rmarkdown)
+#library(rCharts)  # not available for R 3.4.1 (2017-08-03)
+#library(xts)
+
+
+```
+
+
+
+---
+
+
+
+#### download and save CANSIM source data
+
+```{r}
+
+#### LFS ----
+
+MonthlyLFSx <- mergeCANSIM(c(2820087,2820089)) #downloading and merging these two LFS-related tables from CANSIM
+
+saveRDS(MonthlyLFSx, "../data/MonthlyLFSx.rds")
+saveRDS(MonthlyLFSx, paste("../data/MonthlyLFSx.", Sys.Date(), ".rds", sep=""))
+
+write_csv(MonthlyLFSx, "../data/MonthlyLFSx.csv")
+write_csv(MonthlyLFSx, paste("../data/MonthlyLFSx.", Sys.Date(), ".csv", sep=""))
+
+
+#### industry ----
+
+IndustryLFSx <- getCANSIM(2820088) # download the data for industries, without merging it onto existing tables; faster
+
+saveRDS(IndustryLFSx, "../data/IndustryLFSx.rds")
+saveRDS(IndustryLFSx, paste("../data/IndustryLFSx.", Sys.Date(), ".rds", sep=""))
+
+write_csv(IndustryLFSx, "../data/IndustryLFSx.csv")
+write_csv(IndustryLFSx, paste("../data/IndustryLFSx.", Sys.Date(), ".csv", sep=""))
+
+
+```
+
+
+#### downloaded it already? just read it back
+
+```{r}
+
+MonthlyLFSx <- readRDS("../data/MonthlyLFSx.rds")
+
+IndustryLFSx <- readRDS("../data/IndustryLFSx.rds")
+
+
+
+```
+
+
+
+
+
+#### Next steps
+
+Now go to LFS_02_clean.rmd
+
+-30-

@@ -1,0 +1,89 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This series of code chunks reads specific LFS data tables from CANSIM, and wrangles them into shape for further analysis.
+
+
+#### packages
+
+```{r}
+
+
+library(tidyverse)
+
+library(CANSIM2R) # this package downloads CANSIM tables
+library(zoo) #to deal with dates that only have year and month, with no days
+library(Hmisc) # need this package to read labels
+
+# holdovers from original file
+#library(DT)
+#library(car)
+#library(rmarkdown)
+#library(rCharts)  # not available for R 3.4.1 (2017-08-03)
+#library(xts)
+
+
+```
+
+
+---
+
+
+### functions
+
+#### growth & lagged values
+
+```{r}
+
+growthMoM <- function(x)round((x-lag(x, n=1L))*1000,digits=2)
+growthYoY <- function(x)round((x-lag(x, n=12L))*1000, digits=2)
+LastMonthUR <- function(x)(lag(x,n=1L))
+LastYearUR <- function(x)(lag(x, n=12L))
+
+
+```
+
+
+
+
+#### read downloaded and wrangled files
+
+```{r}
+
+wide_UnRate <- readRDS("../data/wideUnRate.rds")
+MonthlyLFSx1 <- readRDS("../data/MonthlyLFSx1.rds")
+MonthlyLFSx2 <- readRDS("../data/MonthlyLFSx2.rds")
+IndustryTable <- readRDS("../data/IndustryTable.rds")
+
+YouthTable <- readRDS("../data/YouthTable.rds")
+GenderTable <- readRDS("../data/GenderTable.rds")
+
+
+
+
+
+
+```
+
+
+
+---
+
+## Data Tables
+
+
+```{r}
+
+# monthly provincial employment and unemployment rate 
+
+MonthlyLFSx1 %>% 
+  filter(Date == max(Date)) %>%
+  select(t, Date,i,Employment,UnRate) %>%
+  arrange(UnRate)
+
+
+```
+
+
