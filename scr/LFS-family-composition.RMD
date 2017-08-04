@@ -1,0 +1,324 @@
+---
+title: "LFS-family-composition"
+author: "Martin Monkman"
+date: "November 19, 2016"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Women with children in the workforce
+
+### Background
+
+On 2016-11-18, [Dr. Tammy Schirle](https://legacy.wlu.ca/homepage.php?grp_id=1805&f_id=31) posted [a series of tweets](https://twitter.com/tammyschirle/status/799616596750831616) via her twitter account (@tammyschirle), showing the proportion of Canadian women with young children, employed and at work, from 1976-2015.
+
+
+**Data source**
+
+Source: Statistics Canada, Labour Force Survey, Labour force survey estimates (LFS), by family type and family age composition ([CANSIM Table 282-0211](http://www5.statcan.gc.ca/cansim/a26?lang=eng&retrLang=eng&id=2820211&&pattern=&stByVal=1&p1=1&p2=-1&tabMode=dataTable&csid=), downloaded 2016-11-21). Reproduced and distributed on an "as is" basis with the permission of Statistics Canada.
+
+[Statistics Canada Open License Agreement](http://www.statcan.gc.ca/eng/reference/licence)
+
+```{r}
+
+# LFS
+#
+# install necessary packages
+# utilities
+library(readr)
+library(zoo)
+# plotting
+library("ggplot2") # NOTE: requires ggplot 2.2.0 
+library("scales")
+# data manipulation
+library("dplyr")
+#
+# set working directory
+# setwd("J:/BCSTATS/INFOLINE/Infoline_2016-11-10_NHPI")
+#
+# read the data
+# -- file 03270046-eng.csv download of CANSIM table 282-0211
+#    "Labour force survey estimates (LFS), by family type and family age composition annual"                                             
+# -- http://www5.statcan.gc.ca/cansim/a26?lang=eng&retrLang=eng&id=2820211&&pattern=&stByVal=1&p1=1&p2=-1&tabMode=dataTable&csid=
+thedata <- read_csv("02820211-eng.csv")
+
+```
+
+
+## Women with children in the workforce, Canada and British Columbia
+
+```{r}
+
+#
+startdate <- 1976
+prov.list <- c("British Columbia", "Canada")
+
+ls.str(thedata)
+
+unique(thedata$CHARACTERISTICS)
+unique(thedata$FAMILYTYPE)
+unique(thedata$FAMILYCOMP)
+
+# filter to have BC and Canada
+thedata_long <- thedata %>%
+#  filter(Ref_Date >= startdate) %>%
+  filter(GEO %in% prov.list, 
+#  filter(GEO == "Canada", 
+         FAMILYTYPE == "Families with female reference person/spouse",
+         FAMILYCOMP == "Total families",
+         CHARACTERISTICS == "Participation rate")
+
+thedata_long
+
+```
+
+
+
+**Plot: Canada and British Columbia**
+
+```{r}
+### basic
+ggplot(thedata_long, aes(x=Ref_Date, y=Value, group=GEO)) + 
+  geom_line()
+#
+# with formatting applied
+dataplot <- ggplot(thedata_long, aes(x=Ref_Date, y=Value, colour=GEO)) + 
+  geom_line(size=1.5) 
+dataplot
+
+
+dataplot2 <- dataplot +
+  scale_y_continuous(labels = comma, limits = c(0, 100), breaks = seq(0, 100, 20)) +
+#  scale_colour_manual(name=NULL,
+#                      breaks=c("Youngest child less than 3 years",
+#                         "Youngest child 3 -5 years",
+#                         "Youngest child 6 - 15 years"),
+#                      labels=c("Youngest child less than 3 years",
+#                         "Youngest child 3 -5 years",
+#                         "Youngest child 6 - 15 years"), 
+#                      values=c("#325A80", "#CCB550", "#000000")) +
+  theme_bw() +
+  theme(
+    panel.border = element_rect(colour="white"),
+    plot.title = element_text(face="bold"),
+    legend.position=c(1,0), 
+    legend.justification=c(1,0),
+    legend.title = element_text(size=12),
+    legend.text = element_text(size=11),
+    axis.line = element_line(colour="black"),
+    axis.title = element_text(size=12),
+    axis.text = element_text(size=12)
+  )
+#
+dataplot2 
+
+
+# add titles / X-Y axis labels / caption
+dataplot2 +
+  labs(title = "Women with children in the workforce, Canada & British Columbia",
+       subtitle = "1976 - 2015 (annual)",
+       caption = "Source: Statistics Canada (Labour Force Survey, CANSIM table 282-0211)", 
+       x = NULL, y = "percentage")
+
+```
+
+
+---
+
+
+## Canada, by age of child
+
+
+```{r}
+
+#
+startdate <- 1976
+
+ls.str(thedata)
+
+unique(thedata$CHARACTERISTICS)
+unique(thedata$FAMILYTYPE)
+unique(thedata$FAMILYCOMP)
+
+family.comp.list <- c("Youngest child less than 3 years",
+                      "Youngest child 3 -5 years",
+                      "Youngest child 6 - 15 years")
+
+# filter to have BC and Canada
+thedata_long <- thedata %>%
+  filter(Ref_Date >= startdate) %>%
+#  filter(GEO %in% prov.list), 
+  filter(GEO == "Canada", 
+         FAMILYTYPE == "Families with female reference person/spouse",
+         FAMILYCOMP %in% family.comp.list,
+         CHARACTERISTICS == "Participation rate")
+
+thedata_long
+
+```
+
+
+```{r}
+# PLOT!
+# basic
+ggplot(thedata_long, aes(x=Ref_Date, y=Value, group=FAMILYCOMP)) + 
+  geom_line()
+#
+# with formatting applied
+dataplot <- ggplot(thedata_long, aes(x=Ref_Date, y=Value, colour=FAMILYCOMP)) + 
+  geom_line(size=1.5) 
+dataplot
+
+
+dataplot2 <- dataplot +
+  scale_y_continuous(labels = comma, limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  scale_colour_manual(name=NULL,
+                      breaks=c("Youngest child less than 3 years",
+                         "Youngest child 3 -5 years",
+                         "Youngest child 6 - 15 years"),
+#                      labels=c("Youngest child less than 3 years",
+#                         "Youngest child 3 -5 years",
+#                         "Youngest child 6 - 15 years"), 
+                      values=c("#325A80", "#CCB550", "#000000")) +
+  theme_bw() +
+  theme(
+    panel.border = element_rect(colour="white"),
+    plot.title = element_text(face="bold"),
+    legend.position=c(1,0), 
+    legend.justification=c(1,0),
+    legend.title = element_text(size=12),
+    legend.text = element_text(size=11),
+    axis.line = element_line(colour="black"),
+    axis.title = element_text(size=12),
+    axis.text = element_text(size=12)
+  )
+#
+dataplot2 
+
+
+# add titles / X-Y axis labels / caption
+dataplot2 +
+  labs(title = "Women with children in the workforce, Canada",
+       subtitle = "1976 - 2015 (annual)",
+       caption = "Source: Statistics Canada (Labour Force Survey, CANSIM table 282-0211)", 
+       x = NULL, y = "percentage")
+
+```
+
+
+
+---
+
+
+## British Columbia, by age of child
+
+
+```{r}
+
+#
+startdate <- 1976
+
+ls.str(thedata)
+
+unique(thedata$CHARACTERISTICS)
+unique(thedata$FAMILYTYPE)
+unique(thedata$FAMILYCOMP)
+
+family.comp.list <- c("Youngest child less than 3 years",
+                      "Youngest child 3 -5 years",
+                      "Youngest child 6 - 15 years")
+
+# filter to have BC and Canada
+thedata_long <- thedata %>%
+  filter(Ref_Date >= startdate) %>%
+#  filter(GEO %in% prov.list), 
+  filter(GEO == "British Columbia", 
+         FAMILYTYPE == "Families with female reference person/spouse",
+         FAMILYCOMP %in% family.comp.list,
+         CHARACTERISTICS == "Participation rate")
+
+thedata_long
+
+```
+
+
+```{r}
+# PLOT!
+# basic
+ggplot(thedata_long, aes(x=Ref_Date, y=Value, group=FAMILYCOMP)) + 
+  geom_line()
+#
+# with formatting applied
+dataplot <- ggplot(thedata_long, aes(x=Ref_Date, y=Value, colour=FAMILYCOMP)) + 
+  geom_line(size=1.5) 
+dataplot
+
+
+dataplot2 <- dataplot +
+  scale_y_continuous(labels = comma, limits = c(0, 100), breaks = seq(0, 100, 20)) +
+  scale_colour_manual(name=NULL,
+                      breaks=c("Youngest child less than 3 years",
+                         "Youngest child 3 -5 years",
+                         "Youngest child 6 - 15 years"),
+#                      labels=c("Youngest child less than 3 years",
+#                         "Youngest child 3 -5 years",
+#                         "Youngest child 6 - 15 years"), 
+                      values=c("#325A80", "#CCB550", "#000000")) +
+  theme_bw() +
+  theme(
+    panel.border = element_rect(colour="white"),
+    plot.title = element_text(face="bold"),
+    legend.position=c(1,0), 
+    legend.justification=c(1,0),
+    legend.title = element_text(size=12),
+    legend.text = element_text(size=11),
+    axis.line = element_line(colour="black"),
+    axis.title = element_text(size=12),
+    axis.text = element_text(size=12)
+  )
+#
+dataplot2 
+
+
+# add titles / X-Y axis labels / caption
+dataplot2 <- dataplot2 +
+  labs(title = "Women with children in the workforce, British Columbia",
+       subtitle = "1976 - 2015 (annual)",
+       caption = "Source: Statistics Canada (Labour Force Survey, CANSIM table 282-0211)", 
+       x = NULL, y = "percentage")
+
+dataplot2
+
+```
+
+
+
+
+
+```{r}
+
+
+
+# save the plot as a png file
+png("plot_labforpart_BC_women-X-child-age.png", width=1024, height=768, res=120)
+plot(dataplot2)
+dev.off()
+
+
+```
+
+---
+
+## REFERENCES
+
+Kourtney Kobel and Tammy Schirle, ["The differential impact of universal child benefits on the labor supply of married and single mothers"](http://www.lcerpa.org/public/papers/LCERPA_2015_11.pdf)
+
+Tyler Cowen, 2016, ["Why is female labor force participation down?"](http://marginalrevolution.com/marginalrevolution/2016/11/female-labor-force-participation.html) - U.S. measures
+
+
+
+

@@ -1,0 +1,179 @@
+---
+title: "Interactive Data Visualization in R"
+output:
+  html_notebook: default
+  html_document: default
+---
+
+This notebook is intended to showcase the multitude of options that are available to create interactive data visualization with R. In addition, there is a brief section in the beginning meant to display a fairly straightforward method of downloading and utilizing data from CANSIM. The data being utilized comes from Statistics Canada's monthly "Labour Force Survey" (LFS). Actual application of anything detailed in here is not limited to a single type of dataset. 
+
+In general, the list of methods and packages is in no way meant to be exhaustive. Moreover, the code attached is not elaborated upon in tremendous detail. The assumption is that enough information is provided that anyone unfamiliar with the specific packages (but not unfamiliar with R as a whole) can quickly grasp the concept and proceed to play around with the code to get a sense of how they can utilize these packages for real-world applications. All the packages and functions mentioned here have varying degrees of documentation and numerous examples online. In most cases, a simple Google search on the name of the package can instantly provide anyone with a great deal of useful information. 
+
+Lastly, all of the packages and their resultant outputs are perfectly useful as standalone objects (or embedded within an R Markdown file as they are in case of this document). However, they can be rendered even more useful as parts of `Shiny` applications. The user-input fields built into `Shiny` apps can be used to add an additional layer of interactivity to all of data visualizations showcased in this document. 
+
+## Requisite packages
+
+All of the examples below utilize multiple packages. Most of them can be downloaded from `CRAN`. However, some (like `rCharts`), need to be downloaded through the author's personal `Github` repository. 
+
+```{r, message=FALSE}
+
+library(tidyverse) # loads multiple packages such as dplyr, tidyr, ggplot2 etc. 
+library(CANSIM2R)  # simplifies the process of directly downloading data from CANSIM
+library(Hmisc)     # need this package to read labels and create metadata materials
+library(zoo)       # 'as.yearmon' function; used to create date variables from fields lacking day values
+library(shiny)     # used for interactive application development
+library(DT)        # datatable package 
+library(car)       # package provides a good way to 'recode' values
+library(rCharts)   # package in development that can be used to create interactive plots 
+library(xts)       # for turning data frames into time series objects
+library(dygraphs)  # for charting time series data
+library(ggiraph)   # turns ggplot2 output into interactive plots
+
+```
+
+## Access CANSIM data
+
+The package "CANSIM2R" has two main functions; `getCANSIM()` is used to extract a single table from CANSIM, while `mergeCANSIM(c(,))` is used to extract and merge multiple tables on key variables at once. In this instance, `getCANSIM()` is being used to download table `282-0087` from CANSIM and it is then being saved in the environment as a dataframe object
+
+```{r, message=FALSE}
+monthlyLFS <- getCANSIM(2820087)    
+```
+
+After downloading and saving the table, it is useful to generate a metadata file in order to more easily see what each column of the downloaded data represents. The metadata in this instance is simply a dataframe, with the vector numbers of the downloaded table in one column and the associated descriptive labels in the other. 
+
+```{r}
+metadataMonthlyLFS <- data.frame(colnames(monthlyLFS),label(monthlyLFS))
+```
+
+The date column of the downloaded data table (`t` in the dataframe) is read as a character by default in R. Function `as.Date` must be utilized to use that information in order to create an explicit date variable. 
+
+However, `t` only describes date as "Year/month", where as the `as.Date` function requires information about the "Day" as well. The easiest way to deal with this issue is to utilize the `as.yearmon` function provided by the `zoo` package.
+
+```{r}
+monthlyLFS$Date <- as.Date(as.yearmon(monthlyLFS$t,format="%Y/%m")) 
+```
+
+At this point, a seperate dataframe can be created by selecting only the fields that have been determined to be of relevance to the task at hand. In this instance, the only information needed is data on seasonally adjusted unemployment rate. By glancing at the metadata frame, it can be determined that vector `V922` is the specific variable of interest. In the code below, the columns are being renamed as well for better readability. 
+
+```{r, message = FALSE}
+monthlyLFS1 <- monthlyLFS %>% select(Date,i,V922)  
+monthlyLFS1 <- rename(monthlyLFS1,UnRate=V922)
+monthlyLFS1 <- rename(monthlyLFS1,Region=i)
+rownames(monthlyLFS1) <- c()
+```
+
+```{r}
+head(monthlyLFS1)
+```
+<br>
+To learn more about `CANSIM2R`, please visit the following [link](https://cran.r-project.org/web/packages/CANSIM2R/index.html).
+
+## Interactive data visualization with ggplot2
+
+`ggplot2` is the most widely used and the most extensively developed graphing package for R. There are countless helpful resources and numerous examples online that can help one quickly grasp at least the basics of data visualization with `ggplot2`. The following is a simple example that utilizes previously downloaded data on unemployment rate.  
+
+```{r}
+# Unemployment rate by region
+
+ggplot(data=monthlyLFS1 %>% filter(Date == "2016-10-01"), aes(x=Region, y=UnRate, fill=Region)) + 
+  geom_bar(stat="identity") +
+  ylab("Unemployment Rate (%)") + 
+  theme(panel.background = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(angle=45, hjust=1 , size = 10),
+        legend.position="none",
+        axis.ticks = element_blank()) +
+  scale_fill_brewer(palette="Set3") + 
+  ggtitle("Unemployment Rate \n October 2016")
+```
+
+Despite the fact that `ggplot2` offers a tremendous amount of options with respect to graphical customization and types of visualization, it does not provide the user with built-in interactive input. As a result, any output generated with `ggplot2` will be entirely static. 
+
+One way to quickly add a degree of interactivity to any existing `ggplot2` code is through an extension called `ggiraph`. Once downloaded, this package allows for some basic elements of interactivity such as hover-tooltips and click-based actions. More importantly, the addition of such interactive elements requires only a minimal amount of modifications to the existing code.
+
+```{r}
+gg_bar <- ggplot(data=monthlyLFS1 %>% filter(Date == "2016-10-01"), 
+                 aes(x=Region, y=UnRate, fill=Region)) + 
+  geom_bar_interactive(stat="identity", aes(data_id = Region, tooltip = as.character(UnRate))) +
+  ylab("Unemployment Rate (%)") + 
+  theme(panel.background = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(angle=45, hjust = 1, size = 10),
+        legend.position="none",
+        axis.ticks = element_blank()) +
+  scale_fill_brewer(palette="Set3") + 
+  ggtitle("Unemployment Rate \n October 2016")
+
+ggiraph(code = {print(gg_bar)},  height_svg = 4, width_svg = 6)
+```
+
+In the example above, tooltips are added to the existing bar chart. The tooltips are used to display the unemployment rate for a given province when the mouse pointer is hovered over a bar. This added functionality requires very little modification to the existing code. `geom_bar` is replaced with `geom_bar_interactive`, and some additonal arguments are added within to specify the values to display while hovering. In addition, the function `ggiraph` is utilized to output the chart.
+
+The official website of `ggplot2` is located [here](http://ggplot2.org/). <br>
+One of many useful resources on `ggplot2` can be found [here](http://www.cookbook-r.com/Graphs/). <br>
+<br>
+To learn more about `ggiraph`, please visit the following [link](http://davidgohel.github.io/ggiraph/).
+
+## Interactive data visualization with JavaScript libraries
+
+Most dynamic and interactive data visualizations online are produced through JavaScript. There is extensive literature on the subject matter, and new or existing libraries are constantly under development. 
+
+Due to a tremendous amount of work done by individuals across the globe, there are now multiple ways for R users to utilize various well-known JavaScript visualization libraries while having little to no knowledge of the JavaScript language itself. Packages such as `rCharts` and `dygraphs` take user-provided R code and translate it to JavaScript code in order to leverage the relevant charting libraries. The benefit of using these packages as opposed to `ggplot2` with `ggiraph` is that they offer a much higher degree of interactivity and user input. However, the downside is that each such package has its own syntax, hence necessitating some investment of time and effort on the part of the analyst before getting started. 
+
+To learn more about all of the JavaScript libraries that have been imported to R, please visit the following [link](http://www.htmlwidgets.org/).
+
+### rCharts 
+
+One package that interfaces with multiple JavaScript libraries is `rCharts`. In the following example, a bar graph (similar to the one created with `ggplot2` above) is being generated. As evidenced by the code below, the syntax is very different from `ggplot2`, albeit still easy to follow. 
+
+```{r, results='asis',comment=NA}
+
+barUR <- nPlot(x= 'Region', y = 'UnRate', data = monthlyLFS1 %>% filter(Date=="2016-10-01"), 
+            type = 'discreteBarChart', dom = 'URPlot') # can pick any date
+barUR$yAxis(axisLabel = "%", width=40)                 # width can't exceed 64; won't show otherwise
+barUR$chart(color = c('#263359', '#263359', '#592633', '#263359', '#263359', '#263359', '#263359', '#263359', 
+                   '#263359', '#263359', '#263359'))
+barUR$xAxis(staggerLabels = TRUE)                      # Stagger axis labels; otherwise some labels won't show
+barUR$print('iframesrc', include_assets = TRUE)
+```
+
+`rCharts` has the ability to interface with multiple JavaScript libraries. In the example above, the specific library being utilized is `nvd3`, which is among the most extensive JavaScript libraries currently in use. In general, these libraries offer a vast array of options that determine the nature of interactivity with the resultant graphs/charts. 
+
+To learn more about `rCharts`, please visit the following [link](http://ramnathv.github.io/rCharts/). <br>
+More examples specific to `nvd3` in `rCharts` can be found [here](http://ramnathv.github.io/posts/rcharts-nvd3/).
+
+### Dygraphs
+
+Another JavaScript charting library that can prove to be very useful is `dygraphs` (the R package is also called `dygraphs`). It is an extremely fast and flexible library that can handle extremely large datasets and is particularly suited for time series data. Even though other packages can also be utilized for such data, `dygraphs` offers a more specific set of options and overall better performance as far as interactive line graphs are concerned.
+
+In order to utilize `dygraphs`, there are few additonal data manipulation steps that must be undertaken first. The package only works with `xts` timeseries data objects. As such, the existing dataframe objects must first be turned "wide" (by using the `tidyr` package), then convereted into a timeseries object (utilizing the `xts` package)
+
+```{r, message=FALSE}
+
+# 'spread' to wide format
+wideMonthlyLFS1 <- monthlyLFS1 %>% select(Date,Region,UnRate) %>% spread(Region,UnRate)   
+
+# turn into time series object
+wideMonthlyLFS1 <- xts(wideMonthlyLFS1, as.Date(wideMonthlyLFS1$Date, format='%y-%m-%d')) 
+
+```
+
+At that stage, `dygraphs` can be utilized to produce line graphs by using the new time series object
+
+```{r, fig.width=12, fig.height=7}
+
+dygraph(wideMonthlyLFS1, main = "Unemployment Rate by Region") %>%
+  dyRangeSelector() %>%
+  dyShading(from = "1990-1-1", to = "1991-1-1") %>%
+  dyShading(from = "2008-7-1", to = "2009-4-1") %>%
+  dyAxis("y", label = "Unemp. Rate (%)") %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(8, "Set2"), drawGrid = FALSE) %>%
+  dyHighlight(highlightCircleSize = 5,
+              highlightSeriesBackgroundAlpha = 0.2,
+              hideOnMouseOut = TRUE)
+
+```
+<br>
+The above graph is very busy and unsightly, but the intention is to show the numerous options and the excellent performance of `dygraphs` for graphing large time series datasets. The package supports multiple options such as event-shading, pinch-to-zoom, horizontal scrolling etc. All of the options can be modified depending on the specific use case.
+
+To learn more about `dygraphs`, please visit the following [link](https://rstudio.github.io/dygraphs/).
