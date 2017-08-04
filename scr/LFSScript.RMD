@@ -28,6 +28,29 @@ library(xts)
 ```
 
 
+---
+
+
+### functions
+
+#### growth & lagged values
+
+```{r}
+
+growthMoM <- function(x)round((x-lag(x, n=1L))*1000,digits=2)
+growthYoY <- function(x)round((x-lag(x, n=12L))*1000, digits=2)
+LastMonthUR <- function(x)(lag(x,n=1L))
+LastYearUR <- function(x)(lag(x, n=12L))
+
+
+```
+
+
+
+---
+
+
+
 #### download and save CANSIM source data
 
 ```{r}
@@ -35,11 +58,11 @@ library(xts)
 
 MonthlyLFSx <- mergeCANSIM(c(2820087,2820089)) #downloading and merging these two LFS-related tables from CANSIM
 
-saveRDS(MonthlyLFSx, "data/MonthlyLFSx.rds")
-saveRDS(MonthlyLFSx, paste("data/MonthlyLFSx.", Sys.Date(), ".rds", sep=""))
+saveRDS(MonthlyLFSx, "../data/MonthlyLFSx.rds")
+saveRDS(MonthlyLFSx, paste("../data/MonthlyLFSx.", Sys.Date(), ".rds", sep=""))
 
-write_csv(MonthlyLFSx, "data/MonthlyLFSx.csv")
-write_csv(MonthlyLFSx, paste("data/MonthlyLFSx.", Sys.Date(), ".csv", sep=""))
+write_csv(MonthlyLFSx, "../data/MonthlyLFSx.csv")
+write_csv(MonthlyLFSx, paste("../data/MonthlyLFSx.", Sys.Date(), ".csv", sep=""))
 
 ```
 
@@ -48,7 +71,7 @@ write_csv(MonthlyLFSx, paste("data/MonthlyLFSx.", Sys.Date(), ".csv", sep=""))
 
 ```{r}
 
-readRDS("data/MonthlyLFSx.rds")
+MonthlyLFSx <- readRDS("../data/MonthlyLFSx.rds")
 
 
 ```
@@ -77,13 +100,6 @@ IndustryLFSx$Date <- as.Date(as.yearmon(IndustryLFSx$t,format="%Y/%m"))
 
 # MonthlyLFSx1$Var2 <- as.double(as.POSIXct(as.Date(MonthlyLFSx1$Date,"%Y-%m-%d")),origin="1976-01-01")
 
-
-#### functions: growth & lagged values ----
-
-growthMoM <- function(x)round((x-lag(x, n=1L))*1000,digits=2)
-growthYoY <- function(x)round((x-lag(x, n=12L))*1000, digits=2)
-LastMonthUR <- function(x)(lag(x,n=1L))
-LastYearUR <- function(x)(lag(x, n=12L))
 
 # Calcute MoM and YoY growths of certain variables (some are non-sensical)
 
