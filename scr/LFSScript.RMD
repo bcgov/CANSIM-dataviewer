@@ -18,11 +18,11 @@ library(zoo) #to deal with dates that only have year and month, with no days
 library(Hmisc) # need this package to read labels
 
 # holdovers from original file
-library(DT)
-library(car)
-library(rmarkdown)
+#library(DT)
+#library(car)
+#library(rmarkdown)
 #library(rCharts)  # not available for R 3.4.1 (2017-08-03)
-library(xts)
+#library(xts)
 
 
 ```
@@ -55,6 +55,7 @@ LastYearUR <- function(x)(lag(x, n=12L))
 
 ```{r}
 
+#### LFS ----
 
 MonthlyLFSx <- mergeCANSIM(c(2820087,2820089)) #downloading and merging these two LFS-related tables from CANSIM
 
@@ -64,6 +65,18 @@ saveRDS(MonthlyLFSx, paste("../data/MonthlyLFSx.", Sys.Date(), ".rds", sep=""))
 write_csv(MonthlyLFSx, "../data/MonthlyLFSx.csv")
 write_csv(MonthlyLFSx, paste("../data/MonthlyLFSx.", Sys.Date(), ".csv", sep=""))
 
+
+#### industry ----
+
+IndustryLFSx <- getCANSIM(2820088) # download the data for industries, without merging it onto existing tables; faster
+
+saveRDS(IndustryLFSx, "../data/IndustryLFSx.rds")
+saveRDS(IndustryLFSx, paste("../data/IndustryLFSx.", Sys.Date(), ".rds", sep=""))
+
+write_csv(IndustryLFSx, "../data/IndustryLFSx.csv")
+write_csv(IndustryLFSx, paste("../data/IndustryLFSx.", Sys.Date(), ".csv", sep=""))
+
+
 ```
 
 
@@ -72,6 +85,9 @@ write_csv(MonthlyLFSx, paste("../data/MonthlyLFSx.", Sys.Date(), ".csv", sep="")
 ```{r}
 
 MonthlyLFSx <- readRDS("../data/MonthlyLFSx.rds")
+
+IndustryLFSx <- readRDS("../data/IndustryLFSx.rds")
+
 
 
 ```
@@ -87,46 +103,50 @@ MonthlyLFSx <- readRDS("../data/MonthlyLFSx.rds")
 
 metadataMonthlyx <- data.frame(colnames(MonthlyLFSx),label(MonthlyLFSx)) # create metadata data.frame to view all labels
 MonthlyLFSx$Date <- as.Date(as.yearmon(MonthlyLFSx$t,format="%Y/%m")) # turning the time variable into an explicit date variable
+
 MonthlyLFSx1 <- MonthlyLFSx %>% select(t,Date,i,V16,V922,V463,V148,V236,V138,V154,V164,V1057,V1072,V1087)
 
 
-#### industry: download & wrangle ----
-
-IndustryLFSx <- getCANSIM(2820088) # download the data for industries, without merging it onto existing tables; faster
-
-
-metadataIndustryx <- data.frame(colnames(IndustryLFSx),label(IndustryLFSx)) # create metadata data.frame to view all labels
-IndustryLFSx$Date <- as.Date(as.yearmon(IndustryLFSx$t,format="%Y/%m"))
-
-# MonthlyLFSx1$Var2 <- as.double(as.POSIXct(as.Date(MonthlyLFSx1$Date,"%Y-%m-%d")),origin="1976-01-01")
 
 
 # Calcute MoM and YoY growths of certain variables (some are non-sensical)
 
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(MoMEmp15Over = growthMoM(V16))
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(YoYEmp15Over = growthYoY(V16))
+
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(MoMUR15Over = growthMoM(V922))
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(YoYUR15Over = growthYoY(V922))
+
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(MoMLF15Over = growthMoM(V463))
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(YoYLF15Over = growthYoY(V463))
+
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(MoMEmpFT15Over = growthMoM(V148))
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(YoYEmpFT15Over = growthYoY(V148))
+
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(MoMEmpPT15Over = growthMoM(V236))
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(YoYEmpPT15Over = growthYoY(V236))
+
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(MoMEmpFT1524 = growthMoM(V138))
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(YoYEmpFT1524 = growthYoY(V138))
+
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(MoMEmpFT2554 = growthMoM(V154))
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(YoYEmpFT2554 = growthYoY(V154))
+
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(MoMEmpFT54Over = growthMoM(V164))
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(YoYEmpFT54Over = growthYoY(V164))
+
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(MoMEmpPrivate = growthMoM(V1057))
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(YoYEmpPrivate = growthYoY(V1057))
+
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(MoMEmpPublic = growthMoM(V1072))
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(YoYEmpPublic = growthYoY(V1072))
+
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(MoMEmpSelf = growthMoM(V1087))
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(YoYEmpSelf = growthYoY(V1087))
+
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(URLast = LastMonthUR(V922))
 MonthlyLFSx1 <- MonthlyLFSx1 %>% group_by(i) %>% mutate(URLastYear = LastYearUR(V922))
+
 
 # Create stuff for Gender tab
 
@@ -145,7 +165,21 @@ YouthTable <- MonthlyLFSx %>% select(t,Date,i,V6,V138,V226,V453,V912)
 
 ### need to be able to import the CMA file into R somehow
 
+```
+
+
+Industry table
+
+```{r}
 # Create stuff for Industry tab
+
+
+metadataIndustryx <- data.frame(colnames(IndustryLFSx),label(IndustryLFSx)) # create metadata data.frame to view all labels
+IndustryLFSx$Date <- as.Date(as.yearmon(IndustryLFSx$t,format="%Y/%m"))
+
+# MonthlyLFSx1$Var2 <- as.double(as.POSIXct(as.Date(MonthlyLFSx1$Date,"%Y-%m-%d")),origin="1976-01-01")
+
+
 
 ### table only consists of employment (estimates + standard errors and what not)
 
@@ -175,12 +209,26 @@ MonthlyLFSx1 <- format(MonthlyLFSx1, big.mark=",", scientific=FALSE, TRIM=TRUE)
 
 wide_UnRate <- MonthlyLFSx2 %>% select(Date,i,UnRate) %>% spread(i,UnRate)
 
-# Save relevant data frames as RDS files
 
-saveRDS(wide_UnRate, "data/wideUnRate.rds")
-saveRDS(MonthlyLFSx1, "data/MonthlyLFSx1.rds")
-saveRDS(MonthlyLFSx2, "data/MonthlyLFSx2.rds")
+```
 
+
+#### Save relevant data frames as RDS files
+
+```{r}
+
+
+saveRDS(wide_UnRate, "../data/wideUnRate.rds")
+saveRDS(MonthlyLFSx1, "../data/MonthlyLFSx1.rds")
+saveRDS(MonthlyLFSx2, "../data/MonthlyLFSx2.rds")
+
+
+```
+
+
+### The Shiny app
+
+```{r}
 
 # Run the Shiny app
 
