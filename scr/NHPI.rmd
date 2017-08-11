@@ -1,0 +1,52 @@
+---
+title: "NHPI"
+output: html_notebook
+---
+
+This set of scripts creates summary tables and graphs plotting the New Housing Price Index (NHPI) data collected and reported by Statistics Canada.
+
+#### packages
+
+```{r}
+
+# tidyverse
+library(tidyverse)
+#library(readr)
+#library("ggplot2") # NOTE: requires ggplot 2.2.0 
+#library("dplyr")
+
+# monthly data series
+library(zoo)
+# extending ggplot2
+library("scales")
+
+
+```
+
+---
+
+### data
+
+
+ARCHIVED DATA SERIES TO 2016-12 
+read the data
+- file 03270046-eng.csv download of CANSIM table 327-0046
+- http://www5.statcan.gc.ca/cansim/a26?lang=eng&retrLang=eng&id=3270046&&pattern=&stByVal=1&p1=1&p2=1&tabMode=dataTable&csid=
+
+#thedata <- read_csv("data/03270046-eng.csv")
+
+#### download and save
+
+NEW DATA SERIES
+Table 327-0056
+New housing price index
+monthly (index, 201612=100)
+- http://www5.statcan.gc.ca/cansim/a26?lang=eng&retrLang=eng&id=3270056&&pattern=&stByVal=1&p1=1&p2=-1&tabMode=dataTable&csid= 
+
+```{r}
+
+thedata <- read_csv("data/03270056-eng.csv")
+
+```
+
+
