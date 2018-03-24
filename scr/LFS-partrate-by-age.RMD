@@ -279,10 +279,17 @@ dataplot2
 
 
 # add titles / X-Y axis labels / caption
-dataplot2 +
+dataplot2 <- dataplot2 +
   labs(title = "Labour force participation, females age 25-44, British Columbia & Canada",
        subtitle = "1976 - 2017 (annual)",
        caption = "Source: Statistics Canada (Labour Force Survey, CANSIM table 282-0002)", 
        x = NULL, y = "percentage")
+
+
+# save the plot as a png file
+png("plot_labforpart_BCCan_female_25-44.png", width=1024, height=768, res=120)
+plot(dataplot2)
+dev.off()
+
 
 ```
