@@ -2,7 +2,11 @@
 title: "LFS-partrate-by-age"
 author: "Martin Monkman"
 date: "November 21, 2016"
-output: html_notebook
+output: html_notebook:
+  toc: true
+  toc_float: true
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -19,11 +23,11 @@ Source: Statistics Canada, Labour Force Survey. Reproduced and distributed on an
 
 CANSIM Table 282-0001
 [Labour force survey estimates (LFS), by sex and detailed age group, unadjusted for seasonality: monthly]
-(http://www5.statcan.gc.ca/cansim/a26?lang=eng&retrLang=eng&id=2820001&pattern=labour+force+survey&tabMode=dataTable&srchLan=-1&p1=1&p2=-1) (downloaded 2016-11-21)
+(http://www5.statcan.gc.ca/cansim/a26?lang=eng&retrLang=eng&id=2820001&pattern=labour+force+survey&tabMode=dataTable&srchLan=-1&p1=1&p2=-1) (downloaded 2018-03-23)
 
 
 CANSIM Table 282-0002
-[Labour force survey estimates (LFS), by sex and detailed age group, unadjusted for seasonality: annual](http://www5.statcan.gc.ca/cansim/a26?lang=eng&retrLang=eng&id=2820002&pattern=labour+force+survey&tabMode=dataTable&srchLan=-1&p1=1&p2=-1) (downloaded 2016-11-21)
+[Labour force survey estimates (LFS), by sex and detailed age group, unadjusted for seasonality: annual](http://www5.statcan.gc.ca/cansim/a26?lang=eng&retrLang=eng&id=2820002&pattern=labour+force+survey&tabMode=dataTable&srchLan=-1&p1=1&p2=-1) (downloaded 2018-03-23)
 
 
 [Statistics Canada Open License Agreement](http://www.statcan.gc.ca/eng/reference/licence)
@@ -53,7 +57,7 @@ library("dplyr")
 #
 # read the data
 # -- file 03270046-eng.csv download of CANSIM table 282-0002
-thedata <- read_csv("02820002-eng.csv")
+thedata <- read_csv("../data/02820002-eng.csv")
 
 ```
 
@@ -75,11 +79,12 @@ unique(thedata$SEX)
 # filter to have Canada
 thedata_long <- thedata %>%
 #  filter(Ref_Date >= startdate) %>%
-  filter(GEOGRAPHY %in% prov.list, 
+  filter(GEOGRAPHY %in% prov.list,
          AGEGROUP == "65 years and over",
 #         AGEGROUP == "15 to 24 years",
          SEX == "Both sexes",
-         CHARACTERISTICS == "Participation rate")
+         CHARACTERISTICS == "Participation rate (percentage)")
+
 
 thedata_long
 
@@ -150,7 +155,7 @@ thedata_long <- thedata %>%
          AGEGROUP == "65 years and over",
 #         AGEGROUP == "15 to 24 years",
          SEX == "Both sexes",
-         CHARACTERISTICS == "Participation rate")
+         CHARACTERISTICS == "Participation rate (percentage)")
 
 thedata_long
 
@@ -204,3 +209,80 @@ dev.off()
 
 ```
 
+
+***
+
+## Participation rate by age and sex
+
+
+### Age == 20-44, Sex = Female
+
+```{r}
+
+#
+startdate <- 1976
+prov.list <- c("British Columbia", "Canada")
+
+ls.str(thedata)
+
+unique(thedata$CHARACTERISTICS)
+unique(thedata$AGEGROUP)
+unique(thedata$SEX)
+
+# filter to have Canada
+thedata_long <- thedata %>%
+#  filter(Ref_Date >= startdate) %>%
+  filter(GEOGRAPHY %in% prov.list,
+         AGEGROUP == "25 to 44 years",
+#         AGEGROUP == "15 to 24 years",
+         SEX == "Females",
+         CHARACTERISTICS == "Participation rate (percentage)")
+
+
+thedata_long
+
+```
+
+
+
+```{r}
+### basic
+dataplot <- ggplot(thedata_long, aes(x=Ref_Date, y=Value, colour=GEOGRAPHY)) + 
+  geom_line(size=1.5) 
+#
+# with formatting applied
+
+dataplot2 <- dataplot +
+  scale_y_continuous(labels = comma, limits = c(50, 100), breaks = seq(50, 100, 10)) +
+#  scale_colour_manual(name=NULL,
+#                      breaks=c("Youngest child less than 3 years",
+#                         "Youngest child 3 -5 years",
+#                         "Youngest child 6 - 15 years"),
+#                      labels=c("Youngest child less than 3 years",
+#                         "Youngest child 3 -5 years",
+#                         "Youngest child 6 - 15 years"), 
+#                      values=c("#325A80", "#CCB550", "#000000")) +
+  theme_bw() +
+  theme(
+    panel.border = element_rect(colour="white"),
+    plot.title = element_text(face="bold"),
+    legend.position=c(1,0), 
+    legend.justification=c(1,0),
+    legend.title = element_text(size=12),
+    legend.text = element_text(size=11),
+    axis.line = element_line(colour="black"),
+    axis.title = element_text(size=12),
+    axis.text = element_text(size=12)
+  )
+#
+dataplot2 
+
+
+# add titles / X-Y axis labels / caption
+dataplot2 +
+  labs(title = "Labour force participation, females age 25-44, British Columbia & Canada",
+       subtitle = "1976 - 2017 (annual)",
+       caption = "Source: Statistics Canada (Labour Force Survey, CANSIM table 282-0002)", 
+       x = NULL, y = "percentage")
+
+```
