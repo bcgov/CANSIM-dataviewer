@@ -314,7 +314,92 @@ dev.off()
 
 
 
-### B.C. and Quebec
+
+### Age == 20-44, Sex = Female and Male
+
+```{r}
+
+#
+startdate <- 1976
+prov.list <- c("British Columbia", "Canada")
+sex.list <- c("Females", "Males")
+
+ls.str(thedata)
+
+unique(thedata$CHARACTERISTICS)
+unique(thedata$AGEGROUP)
+unique(thedata$SEX)
+
+# filter to have Canada
+thedata_long <- thedata %>%
+#  filter(Ref_Date >= startdate) %>%
+  filter(GEOGRAPHY %in% prov.list,
+         AGEGROUP == "25 to 44 years",
+#         AGEGROUP == "15 to 24 years",
+         SEX %in% sex.list,
+         CHARACTERISTICS == "Participation rate (percentage)")
+
+
+thedata_long
+
+```
+
+
+
+```{r}
+### basic
+dataplot <- ggplot(thedata_long, aes(x=Ref_Date, y=Value, colour=SEX)) + 
+  geom_line(size=1.5) +
+  facet_grid(. ~ GEOGRAPHY)
+
+dataplot
+#
+# with formatting applied
+
+dataplot2 <- dataplot +
+  scale_y_continuous(labels = comma, limits = c(50, 100), breaks = seq(50, 100, 10)) +
+#  scale_colour_manual(name=NULL,
+#                      breaks=c("Youngest child less than 3 years",
+#                         "Youngest child 3 -5 years",
+#                         "Youngest child 6 - 15 years"),
+#                      labels=c("Youngest child less than 3 years",
+#                         "Youngest child 3 -5 years",
+#                         "Youngest child 6 - 15 years"), 
+#                      values=c("#325A80", "#CCB550", "#000000")) +
+  theme_bw() +
+  theme(
+    panel.border = element_rect(colour="white"),
+    plot.title = element_text(face="bold"),
+    legend.position=("bottom"), 
+    legend.justification=c(1,0),
+    legend.title = element_text(size=12),
+    legend.text = element_text(size=11),
+    axis.line = element_line(colour="black"),
+    axis.title = element_text(size=12),
+    axis.text = element_text(size=12)
+  )
+#
+dataplot2 
+
+
+# add titles / X-Y axis labels / caption
+dataplot2 <- dataplot2 +
+  labs(title = "Labour force participation, age 25-44 by sex, British Columbia & Canada",
+       subtitle = "1976 - 2017 (annual)",
+       caption = "Source: Statistics Canada (Labour Force Survey, CANSIM table 282-0002)", 
+       x = NULL, y = "percentage")
+
+dataplot2
+
+# save the plot as a png file
+png("plot_labforpart_BCCan_sex_25-44.png", width=1024, height=768, res=120)
+plot(dataplot2)
+dev.off()
+
+
+```
+
+### B.C., Quebec, and Alberta
 
 ```{r}
 
