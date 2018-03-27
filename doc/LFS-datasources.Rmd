@@ -32,10 +32,11 @@ Canada's primary measure of the labour market, including unemployment rates, tot
 - [LFS_UR.R](../scr/LFS_UR.R) -- R script for using `CANSIM2R` package to download CANSIM tables; interactive data visualization with `rCharts`, `dygraphs` and `ggiraph`; and interactive tables using `DT` package.
 
 
-- [LFS-family-composition](../scr/LFS-family-composition) -- a variety of R scripts that explore different demographic aspects of the labour force, including women with children and older workers.
+- [LFS-family-composition](../scr/LFS-family-composition.RMD) -- a variety of R scripts that explore different demographic aspects of the labour force, including women with children.
 
 
-- [LFS-partrate-by-age](../scr/LFS-partrate-by-age.RMD) -- seniors in the workforce
+- [LFS-partrate-by-age](../scr/LFS-partrate-by-age.RMD) -- seniors in the workforce, women and men aged 25-44.
+
 
 - [LFSScript](../scr/LFSScript.R) -- data wrangling for the LFS Shiny app
 
