@@ -28,6 +28,8 @@ library(zoo)
 library("scales")
 
 # cansim
+#install.packages("devtools")
+#devtools::install_github("mountainmath/cansim")
 library(cansim)
 
 ```
@@ -48,14 +50,85 @@ Provincial (sales only)
 https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1610004801
 
 
+Read the data
+
+* note: two files, one for Canada and another for the provinces and territories
+
 ```{r}
 
-#thedata <- read_csv("../data/03270056-eng.csv")
+mfg_CAN <- get_cansim("16-10-0047-01")
+mfg_prov <- get_cansim("16-10-0048-01")
+
 
 ```
 
 
 #### data wrangling
+
+filter `mfg_CAN` to
+
+* include only total manufacturing & seasonally adjusted
+
+
+filter `mfg_prov` to 
+
+* include only British Columbia
+
+  - then only total manufacturing & seasonally adjusted
+
+
+
+```{r}
+
+# Canada
+
+ls.str(mfg_CAN)
+
+mfg_CAN_totalSA <- mfg_CAN %>%
+  filter(`North American Industry Classification System (NAICS)` == "Manufacturing",
+         `Seasonal adjustment` == "Seasonally adjusted",
+         `Principal statistics` == "Sales of goods manufactured (shipments)")
+
+
+# provinces
+
+ls.str(mfg_prov)
+
+unique(mfg_prov$GEO)
+
+mfg_BC <- mfg_prov %>%
+  filter(GEO == "British Columbia")
+
+mfg_BC_totalSA <- mfg_BC %>%
+  filter(`North American Industry Classification System (NAICS)` == "Manufacturing",
+         `Seasonal adjustment` == "Seasonally adjusted")
+
+
+```
+
+
+Add index value
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```{r}
 
