@@ -23,7 +23,8 @@ library(tidyverse)
 #library("dplyr")
 
 # monthly data series
-library(zoo)
+#library(zoo)
+library(lubridate)
 # extending ggplot2
 library("scales")
 
@@ -85,6 +86,7 @@ filter `mfg_prov` to
 ls.str(mfg_CAN)
 
 mfg_CAN_totalSA <- mfg_CAN %>%
+  mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) %>%
   filter(`North American Industry Classification System (NAICS)` == "Manufacturing",
          `Seasonal adjustment` == "Seasonally adjusted",
          `Principal statistics` == "Sales of goods manufactured (shipments)")
@@ -97,6 +99,7 @@ ls.str(mfg_prov)
 unique(mfg_prov$GEO)
 
 mfg_BC <- mfg_prov %>%
+  mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) %>%
   filter(GEO == "British Columbia")
 
 mfg_BC_totalSA <- mfg_BC %>%
@@ -110,20 +113,44 @@ mfg_BC_totalSA <- mfg_BC %>%
 Add index value
 
 
+```{r}
+
+# Canada
+
+index100_CAN <- as.integer(
+  mfg_CAN_totalSA %>%
+  filter(REF_DATE == "2010-01-01") %>%
+  select(VALUE)
+)
+
+mfg_CAN_totalSA <- mfg_CAN_totalSA %>%
+  mutate(indexval = (VALUE / index100_CAN) * 100)
+
+
+# BC
+
+index100_BC <- as.integer(
+  mfg_BC_totalSA %>%
+  filter(REF_DATE == "2010-01-01") %>%
+  select(VALUE)
+)
+
+mfg_BC_totalSA <- mfg_BC_totalSA %>%
+  mutate(indexval = (VALUE / index100_BC) * 100)
+
+```
 
 
 
+#### Plot!
 
 
+```{r}
 
+ggplot(mfg_BC_totalSA, aes(x=REF_DATE, y=indexval)) + 
+  geom_line()
 
-
-
-
-
-
-
-
+```
 
 
 
