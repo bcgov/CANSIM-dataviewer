@@ -19,8 +19,9 @@ This set of scripts creates summary tables and graphs plotting the Monthly Surve
 # tidyverse
 library(tidyverse)
 #library(readr)
-#library("ggplot2") # NOTE: requires ggplot 2.2.0 
-#library("dplyr")
+#library(ggplot2) 
+#library(dplyr)
+library(stringr)
 
 # monthly data series
 #library(zoo)
@@ -270,4 +271,44 @@ ggsave(filename = "NHPI_plot.png", plot = NHPI_plot,
 
 ```
 
+
+
+### Canadian detail
+
+Looking at the past three months, sorted by total growth. 
+
+(**Note:** this uses the seasonally adjusted data!)
+
+```{r}
+
+
+mfg_CAN_industry <- 
+  mfg_CAN %>%
+  mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) %>%
+  filter(str_detect(
+    !!(mfg_CAN$`Classification Code for North American Industry Classification System (NAICS)`), 
+        "\\[...]")) %>%
+  filter(`Seasonal adjustment` == "Seasonally adjusted",
+         `Principal statistics` == "Sales of goods manufactured (shipments)") %>%
+  group_by(`North American Industry Classification System (NAICS)`) %>%
+  mutate(MOM_pct = VALUE / lag(VALUE),
+         MOM_val = VALUE - lag(VALUE)) %>%
+  select(REF_DATE, 
+         `North American Industry Classification System (NAICS)`, 
+         `Classification Code for North American Industry Classification System (NAICS)`,
+         VALUE, MOM_val, MOM_pct) %>%
+  arrange(REF_DATE, desc(MOM_val)) 
+
+
+mfg_CAN_industry %>%
+  filter(REF_DATE == "2018-07-01")
+
+mfg_CAN_industry %>%
+  filter(REF_DATE == "2018-06-01")
+
+mfg_CAN_industry %>%
+  filter(REF_DATE == "2018-05-01")
+
+
+```
 
