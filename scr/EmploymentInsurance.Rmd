@@ -1,0 +1,144 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Employment Insurance
+
+
+This set of scripts creates summary tables and graphs plotting the Monthly Survey of Manufacturing data collected and reported by Statistics Canada.
+
+#### packages
+
+```{r}
+
+# tidyverse
+library(tidyverse)
+#library(readr)
+#library(ggplot2) 
+#library(dplyr)
+library(stringr)
+library(glue)
+
+# monthly data series
+library(lubridate)
+# extending ggplot2
+#library("scales")
+
+# cansim
+#install.packages("devtools")
+#devtools::install_github("mountainmath/cansim")
+library(cansim)
+
+```
+
+---
+
+## Background
+
+The Daily, 2018-09-20
+
+* https://www150.statcan.gc.ca/n1/daily-quotidien/180920/dq180920a-eng.htm?HPA=1 
+
+
+
+## data
+
+There are 12 data tables associated with this:
+https://www150.statcan.gc.ca/n1/daily-quotidien/180920/dq180920a-cansim-eng.htm
+
+
+Our focus is on the seasonally adjusted series.
+
+
+
+Provincial:
+
+* Employment insurance claims received by province and territory, monthly, seasonally adjusted
+
+  - Table: 14-10-0005-01 (formerly CANSIM  276-0004)
+  
+  - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410000501 
+
+* Employment insurance regular income benefit characteristics, monthly, seasonally adjusted
+
+  - Table: 14-10-0008-01 (formerly CANSIM  276-0018)
+  
+  - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410000801
+  
+* Employment insurance beneficiaries (regular benefits) by province and territory, monthly, seasonally adjusted
+
+  - Table: 14-10-0011-01 (formerly CANSIM  276-0022)
+
+  - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410001101
+  
+* Employment insurance beneficiaries (regular benefits) by province, territory and occupation, monthly, seasonally adjusted
+
+  - Table: 14-10-0337-01 (formerly CANSIM  276-0043)
+
+  - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410033701
+  
+
+
+###
+
+Read the data
+
+
+```{r}
+
+data_10_0005 <- get_cansim("14-10-0005-01")
+
+data_10_0005 <- data_10_0005 %>%
+    mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
+  
+data_10_0008 <- get_cansim("14-10-0008-01")
+
+data_10_0008 <- data_10_0008 %>%
+    mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
+
+data_10_0011 <- get_cansim("14-10-0011-01")
+
+data_10_0011 <- data_10_0011 %>%
+    mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
+
+data_10_0013 <- get_cansim("14-10-0013-01")
+
+data_10_0013 <- data_10_0013 %>%
+    mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
+
+data_10_0337 <- get_cansim("14-10-0337-01")
+
+data_10_00337 <- data_10_0337 %>%
+    mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
+
+```
+
+
+
+this month
+
+```{r}
+
+filenamenum <- "data_10_0011"
+
+print(glue("TABLE:  ", filenamenum))
+
+ls.str(data_10_0011)
+
+unique(data_10_0011$`Beneficiary detail`)
+
+
+data_10_0011 %>%
+  filter(GEO %in% c("Canada", "British Columbia"),
+    `Beneficiary detail` == "Regular benefits",
+    Sex == "Both sexes",
+    `Age group` == "15 years and over",
+    REF_DATE == "2018-07-01")
+
+
+```
+
+
+
+
