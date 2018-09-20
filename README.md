@@ -17,7 +17,11 @@ These pages contain links to data sources and related reference materials at Sta
 
 * [Labour Force Survey](doc/LFS-datasources.Rmd)
 
+* [Manufacturing (Monthly Survey of Manufacturing)](doc/Manufacturing.Rmd)
+
 * [New Housing Price Index](doc/NHPI-datasources.Rmd)
+
+* [Wholesale Trade](https://github.com/bcgov/CANSIM-dataviewer/blob/master/doc/WholesaleTrade-datasources.Rmd)
 
 
 
