@@ -1,0 +1,18 @@
+# Manufacturing sales statistics
+
+
+The Daily, 2018-09-18
+
+* https://www150.statcan.gc.ca/n1/daily-quotidien/180918/dq180918a-eng.htm 
+
+
+### data
+
+National
+https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1610004701
+
+Provincial (sales only)
+https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1610004801
+
+
+
