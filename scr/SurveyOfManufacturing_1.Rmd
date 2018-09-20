@@ -90,15 +90,7 @@ mfg_CAN_totalSA <- mfg_CAN %>%
   mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) %>%
   filter(`North American Industry Classification System (NAICS)` == "Manufacturing",
          `Seasonal adjustment` == "Seasonally adjusted",
-         `Principal statistics` == "Sales of goods manufactured (shipments)") %>%
-  select(REF_DATE, 
-         GEO,
-         `North American Industry Classification System (NAICS)`,
-         `Classification Code for North American Industry Classification System (NAICS)`,
-         `Seasonal adjustment`,
-         `Principal statistics`,
-         VALUE
-         )
+         `Principal statistics` == "Sales of goods manufactured (shipments)")
 
 
 # provinces
@@ -113,40 +105,27 @@ mfg_BC <- mfg_prov %>%
 
 mfg_BC_totalSA <- mfg_BC %>%
   filter(`North American Industry Classification System (NAICS)` == "Manufacturing",
-         `Seasonal adjustment` == "Seasonally adjusted") %>%
-  select(REF_DATE, 
-         GEO,
-         `North American Industry Classification System (NAICS)`,
-         `Classification Code for North American Industry Classification System (NAICS)`,
-         `Seasonal adjustment`,
-         `Principal statistics`,
-         VALUE
-         )
-  
+         `Seasonal adjustment` == "Seasonally adjusted")
 
 
 ```
 
 
+Add index value
 
-Add index values
-
-* indexpct 
 
 ```{r}
-
-indexrefdate <- "2010-01-01"
 
 # Canada
 
 index100_CAN <- as.integer(
   mfg_CAN_totalSA %>%
-  filter(REF_DATE == indexrefdate) %>%
+  filter(REF_DATE == "2010-01-01") %>%
   select(VALUE)
 )
 
 mfg_CAN_totalSA <- mfg_CAN_totalSA %>%
-  mutate(indexpct = (VALUE / index100_CAN) * 100)
+  mutate(indexval = (VALUE / index100_CAN) * 100)
 
 
 # BC
@@ -158,7 +137,7 @@ index100_BC <- as.integer(
 )
 
 mfg_BC_totalSA <- mfg_BC_totalSA %>%
-  mutate(indexpct = (VALUE / index100_BC) * 100)
+  mutate(indexval = (VALUE / index100_BC) * 100)
 
 ```
 
@@ -167,45 +146,53 @@ mfg_BC_totalSA <- mfg_BC_totalSA %>%
 #### Plot!
 
 
-
-join tables
-
-
 ```{r}
 
-mfg_CANBC_totalSA <- mfg_CAN_totalSA %>%
-  full_join(mfg_BC_totalSA)
-
-
-```
-
-
-
-plot with both Canada and B.C.
-
-
-
-```{r}
-
-mfg_CANBC_totalSA %>%
-  filter(REF_DATE >= "2010-01-01") %>%
-  ggplot(aes(x=REF_DATE, y=indexpct, colour=GEO)) + 
+ggplot(mfg_BC_totalSA, aes(x=REF_DATE, y=indexval)) + 
   geom_line()
 
 ```
 
-* plus format
+
 
 
 
 
 ```{r}
 
-dataplot <- 
-  mfg_CANBC_totalSA %>%
-  filter(REF_DATE >= "2010-01-01") %>%
-  ggplot(aes(x=REF_DATE, y=indexpct, colour=GEO)) + 
-    geom_line(size=1.5) 
+
+# fix dates
+class(thedata$Ref_Date)
+thedata$DATE <- as.Date(as.yearmon(thedata$Ref_Date, format="%Y/%m"))
+#
+
+startdate <- as.Date("2007-01-01")
+
+
+# filter to have BC and Canada
+thedata_long <- thedata %>%
+  filter(DATE >= startdate) %>%
+  filter(GEO == c("British Columbia", "Canada"), INDEX == "Total (house and land)")
+
+thedata_long
+
+
+```
+
+--- 
+
+### plot
+
+
+```{r}
+# PLOT!
+# basic
+ggplot(thedata_long, aes(x=DATE, y=Value, group=GEO)) + 
+  geom_line()
+#
+# with formatting applied
+dataplot <- ggplot(thedata_long, aes(x=DATE, y=Value, colour=GEO)) + 
+  geom_line(size=1.5) 
 dataplot
 
 ```
@@ -216,7 +203,7 @@ with more formatting
 
 dataplot2 <- dataplot +
   #  ylim(3500000, 6500000) +
-  scale_y_continuous(labels = comma, limits = c(100, 175)) +
+  scale_y_continuous(labels = comma, limits = c(80, 110)) +
   scale_colour_manual(name=NULL,
                       breaks=c("Canada", "British Columbia"),
                       labels=c("Canada", "British Columbia"), 
@@ -244,20 +231,42 @@ final version
 
 # experiments with ggplot2's new subtitle and caption options
 
-Mfg_title <- as.character("Manufacturing Sales (seasonally adjusted), Canada & B.C.")
-Mfg_subtitle <- as.character("January 2010 = 100")
-Mfg_caption <- as.character("Source: Statistics Canada, CANSIM tables 16-10-0047 & 16-10-0048")
+NHPI_title <- as.character("New Housing Price Index, Canada & B.C.")
+NHPI_subtitle <- as.character("December 2016 = 100")
+NHPI_caption <- as.character("Source: Statistics Canada, CANSIM table 327-0056")
 
+# add titles / X-Y axis labels
+dataplot2 +
+  ggtitle(NHPI_title, subtitle = NHPI_subtitle)
+
+# add titles / X-Y axis labels
+dataplot2 +
+  labs(title = NHPI_title, subtitle = NHPI_subtitle)
+
+# add titles / X-Y axis labels
+dataplot2 +
+  labs(title = NHPI_title,
+       subtitle = NHPI_subtitle,
+       x = NULL, y = "NHPI")
+
+# add titles / X-Y axis labels
+dataplot2 +
+  labs(title = NHPI_title,
+       subtitle = NHPI_subtitle,
+       caption = NHPI_caption, 
+       x = NULL, y = "NHPI") 
+
+# final version
 # add titles / X-Y axis labels / caption
-Mfg_plot <- dataplot2 +
-  labs(title = Mfg_title,
-       subtitle = Mfg_subtitle,
-       caption = Mfg_caption, 
-       x = NULL, y = "Index") 
+NHPI_plot <- dataplot2 +
+  labs(title = NHPI_title,
+       subtitle = NHPI_subtitle,
+       caption = NHPI_caption, 
+       x = NULL, y = "NHPI (Dec. 2016 = 100)") 
 
-Mfg_plot
+NHPI_plot
 
-ggsave(filename = "Mfg_plot.png", plot = Mfg_plot,
+ggsave(filename = "NHPI_plot.png", plot = NHPI_plot,
        width = 8, height = 6)
 
 ```
