@@ -1,6 +1,8 @@
 ---
 title: "R Notebook"
 output: html_notebook
+editor_options: 
+  chunk_output_type: inline
 ---
 
 # Employment Insurance
@@ -203,6 +205,31 @@ data_10_0013 %>%
   arrange(desc(MOM_val)) %>%
   filter(REF_DATE == "2018-07-01")
 
+CMA_list <- c("[59A]", "[932]", "[915]", "[933]", "[935]")
+
+data_10_0013 %>%
+  filter(GeoUID %in% CMA_list) %>%
+  group_by(GEO) %>%
+  mutate(MOM_pct = VALUE / lag(VALUE),
+         MOM_val = VALUE - lag(VALUE)) %>%
+  arrange(desc(MOM_pct)) %>%
+  filter(REF_DATE == "2018-07-01")
+
+
+CA_list <- c("[59B]", "[944]", "[930]", "[943]", "[905]", 
+             "[975]", "[937]", "[977]", "[925]", "[938]", "[939]", 
+             "[913]", "[940]", "[945]", "[970]", "[955]", "[952]", 
+             "[920]", "[934]", "[965]", "[918]", "[950]")
+
+
+data_10_0013 %>%
+  filter(GeoUID %in% CA_list) %>%
+  group_by(GEO) %>%
+  mutate(MOM_pct = VALUE / lag(VALUE),
+         MOM_val = VALUE - lag(VALUE)) %>%
+  arrange(desc(MOM_pct)) %>%
+  filter(REF_DATE == "2018-07-01")
+
 ```
 
 
@@ -215,14 +242,14 @@ September 20, 2018
 
 The number of people receiving employment insurance (EI) benefits in British Columbia rose 2.2% in July compared to June (seasonally adjusted), up by 900 to reach 42,570 individuals. 
 
-
+The increase in beneficiaries in British Columbia was observed in all census metropolitan areas in B.C. (+3.1%, or 680 persons). The largest increase was seen in Victoria, which added 290 persons (+14.5%) and Abbotsford (+140 persons, +7.7%). Census agglomerations also saw an aggregate increase (370 persons or +3.4%), although this ranged from a high of 31% (+110 persons) in Duncan to drop of 10.5% (-20 persons) in Dawson Creek. Areas outside census metropolitan areas and census agglomerations saw a drop of 140 persons or -1.5%.
 
 
 original from  June:
 
 
 The decrease was driven by a decline in female recipients (-170 persons or -1.0%), while male recipients saw a very slight drop in the month (-30 persons or  0.1%).
-The decrease in beneficiaries in British Columbia was widespread across census agglomerations (-120 persons or -1.1%) and outside census metropolitan areas and census agglomerations (-140 persons or -1.5%). Among census metropolitan areas (+50 persons or 0.2%), Kelowna (-30 persons or -1.3%) and Victoria (-10 persons or -0.5%) saw fewer EI recipients in the month, more than offset by a larger number of recipients in Vancouver (+20 persons or +0.1%) and Abbotsford-Mission (+60 persons or +3.6%).
+ Among census metropolitan areas (+50 persons or 0.2%), Kelowna (-30 persons or -1.3%) and Victoria (-10 persons or -0.5%) saw fewer EI recipients in the month, more than offset by a larger number of recipients in Vancouver (+20 persons or +0.1%) and Abbotsford-Mission (+60 persons or +3.6%).
 The number of EI claims in British Columbia (an indicator of the number of future EI recipients) went up by 0.5% in June compared to the previous month.
 Nationally, the number of EI beneficiaries increased in June, with 3,760 more people collecting EI, a 0.8% climb compared to May. Although the number of women receiving EI declined in the month ( 2,700 persons or  1.6%), it was not enough to offset the upsurge in male recipients (+6,460 persons or +2.3%). The number of EI claims went up by 3.7% in June to reach 236,200. Claims increased in all provinces, except Newfoundland and Labrador (-4.3%).
 
