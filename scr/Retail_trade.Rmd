@@ -88,7 +88,7 @@ data_20_10_0008 <- data_20_10_0008 %>%
 
 
 
-this month
+try some filtering
 
 ```{r}
 
@@ -111,13 +111,25 @@ data_20_10_0008 %>%
          YOY_pct = ((VALUE / lag(VALUE, n = 12)) - 1) * 100,
          YOY_chg = (VALUE - lag(VALUE, n = 12)) ) %>%
   arrange(desc(REF_DATE)) %>%
-  filter(REF_DATE >= "2017-07-01")
+  select(REF_DATE, GEO,
+         Adjustments,
+         VALUE, 
+         MOM_val, MOM_pct, MOM_chg,
+         YOY_val, YOY_pct, YOY_chg) %>%
+  ungroup() %>%
+#  filter(REF_DATE >= "2017-07-01", 
+  filter(REF_DATE %in% c(as.Date("2018-07-01"), as.Date("2018-06-01"), as.Date("2017-07-01")), 
+         `Adjustments` == "Seasonally adjusted")
 
-data_20_10_0008 %>%
-  filter(GEO %in% c("British Columbia", "Canada"),
-    `Adjustments` %in% c("Unadjusted", "Seasonally adjusted"),
-    `Classification Code for North American Industry Classification System (NAICS)` == "[44-45]") %>%
-  group_by(GEO, `Adjustments`) %>%
+
+unique(data_20_10_0008$GEO)
+
+data_Can_BC_YVR <- data_20_10_0008 %>%
+  filter(GEO %in% c("Canada", "British Columbia", "Vancouver, British Columbia"), 
+    `Adjustments` %in% c("Unadjusted", "Seasonally adjusted") ) %>%
+  group_by(GEO, 
+           `Adjustments`,
+           `Classification Code for North American Industry Classification System (NAICS)`) %>%
   mutate(MOM_val = lag(VALUE),
          MOM_pct = ((VALUE / lag(VALUE, n = 1)) - 1) * 100,
          MOM_chg = (VALUE - lag(VALUE, n = 1)) ) %>%
@@ -125,10 +137,34 @@ data_20_10_0008 %>%
          YOY_pct = ((VALUE / lag(VALUE, n = 12)) - 1) * 100,
          YOY_chg = (VALUE - lag(VALUE, n = 12)) ) %>%
   arrange(desc(REF_DATE)) %>%
-  filter(REF_DATE >= "2017-07-01")
+  select(REF_DATE, GEO,
+         `Classification Code for North American Industry Classification System (NAICS)`,        
+         Adjustments,
+         VALUE, 
+         MOM_val, MOM_pct, MOM_chg,
+         YOY_val, YOY_pct, YOY_chg) %>%
+  ungroup() 
+
+data_Can_BC_YVR %>%
+  filter(REF_DATE %in% c(as.Date("2018-07-01"), as.Date("2018-06-01"), as.Date("2017-07-01")),
+#  filter(REF_DATE %in% c(as.Date("2018-07-01", "2018-06-01", "2017-07-01")),
+         GEO == "Canada",
+         `Classification Code for North American Industry Classification System (NAICS)` == "[44-45]",
+         `Adjustments` == "Seasonally adjusted")
 
 
-BC_data_0008 <-
+write_csv(data_Can_BC_YVR, "data_Can_BC_YVR.csv")
+
+
+```
+
+
+
+
+```{r}
+
+
+BC_data_0008 <- 
  data_20_10_0008 %>%
   filter(GEO == "British Columbia",
     `Adjustments` %in% c("Unadjusted", "Seasonally adjusted") ) %>%
@@ -140,8 +176,26 @@ BC_data_0008 <-
   mutate(YOY_val = lag(VALUE, n = 12),
          YOY_pct = ((VALUE / lag(VALUE, n = 12)) - 1) * 100,
          YOY_chg = (VALUE - lag(VALUE, n = 12)) ) %>%
-  arrange(desc(REF_DATE)) 
+  arrange(VECTOR, REF_DATE) %>%
+  ungroup()
 
+BC_data_0008
+
+BC_data_0008 %>%
+  filter(REF_DATE == "2018-07-01")
+
+write_csv(BC_data_0008, "BC_data_0008.csv")
+
+```
+
+
+
+
+***
+
+old and plagiarized code, uncertain functionality
+
+```{r}
 
 
 BC_data_0008 %>%
