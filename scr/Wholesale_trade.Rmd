@@ -124,6 +124,24 @@ data_20_10_0074 %>%
          `Adjustments` == "Seasonally adjusted")
 
 
+data_20_10_0074 %>%
+  filter(`Adjustments` == "Seasonally adjusted",
+    `Classification Code for North American Industry Classification System (NAICS)` == "[41]") %>%
+  group_by(GEO, `Adjustments`) %>%
+  mutate(MOM_val = lag(VALUE),
+         MOM_pct = ((VALUE / lag(VALUE, n = 1)) - 1) * 100,
+         MOM_chg = (VALUE - lag(VALUE, n = 1)) ) %>%
+  mutate(YOY_val = lag(VALUE, n = 12),
+         YOY_pct = ((VALUE / lag(VALUE, n = 12)) - 1) * 100,
+         YOY_chg = (VALUE - lag(VALUE, n = 12)) ) %>%
+  select(REF_DATE, GEO,
+         Adjustments,
+         VALUE, 
+         MOM_val, MOM_pct, MOM_chg,
+         YOY_val, YOY_pct, YOY_chg) %>%
+  ungroup() %>%
+  filter(REF_DATE >= "2018-07-01") %>%
+  arrange(desc(MOM_pct))
 
 
 ```
@@ -168,24 +186,23 @@ old and plagiarized code, uncertain functionality
 ```{r}
 
 
-BC_data_0008 %>%
+BC_data_0074 %>%
   filter(str_detect(
-    !!(BC_data_0008$`Classification Code for North American Industry Classification System (NAICS)`), 
+    !!(BC_data_0074$`Classification Code for North American Industry Classification System (NAICS)`), 
         "\\[...]")) 
 
-NAICScodes <- unique(BC_data_0008$`Classification Code for North American Industry Classification System (NAICS)`)
-str_detect(NAICScodes, "\\[...]")
+BC_data_0074 %>%
+  filter(str_detect(
+    !!(BC_data_0074$`Classification Code for North American Industry Classification System (NAICS)`), 
+        "\\[...]")) %>%
+  filter(REF_DATE == "2018-07-01") %>%
+  select(REF_DATE, GEO,
+         `North American Industry Classification System (NAICS)`,
+         `Adjustments`,
+         VALUE,
+         MOM_pct, MOM_val, MOM_chg)
 
-BC_data_0008 %>%
-    filter(str_detect(!!NAICScodes, "\\[...]")) 
 
-
-
-BC_data_0008 %>%
-  filter(REF_DATE == "2017-07-01")
-
-BC_data_0008 %>%
-  filter(REF_DATE == "2018-07-01")
 
 ```
 
@@ -306,7 +323,25 @@ ggsave(filename = "EI_plot.png", plot = EI_plot,
 ```
 
 
-### B.C. Geography
+### misc stray code from previous
+
+```{r}
+NAICScodes <- unique(BC_data_0074$`Classification Code for North American Industry Classification System (NAICS)`)
+str_detect(NAICScodes, "\\[...]")
+
+BC_data_0008 %>%
+    filter(str_detect(!!NAICScodes, "\\[...]")) 
+
+
+
+BC_data_0008 %>%
+  filter(REF_DATE == "2017-07-01")
+
+BC_data_0008 %>%
+  filter(REF_DATE == "2018-07-01")
+
+```
+
 
 
 ```{r}
@@ -377,28 +412,3 @@ data_10_0013 %>%
 ```
 
 
-
-## July 2018 text
-
-Issue 18-nnn Employment Insurance
-
-September 20, 2018
-
-The number of people receiving employment insurance (EI) benefits in British Columbia rose 2.2% in July compared to June (seasonally adjusted), up by 900 to reach 42,570 individuals. This was the first increase seen since November 2017, and only the third in the 21 months since November 2016. In October 2016, the total number of people in B.C. receiving EI benefits was 57,000. Looking back over the last decade, the number of EI recipients in B.C. peaked at nearly 98,000 in June 2009.
-
-The increase in beneficiaries in British Columbia was observed in all census metropolitan areas in B.C. (+3.1%, or 680 persons). The largest increase was seen in Victoria, which added 290 persons (+14.5%) and Abbotsford (+140 persons, +7.7%). Census agglomerations also saw an aggregate increase (370 persons or +3.4%), although changes in the number of EI beneficiaries ranged from an increase of 31% (+110 persons) in Duncan to drop of 10.5% (-20 persons) in Dawson Creek. Areas outside census metropolitan areas and census agglomerations saw a drop of 140 persons or -1.5%.
-
-Nationally, the number of people receiving EI benefits rose 2.4% (an increase of 11,000 people) compared to June. The three provinces with rates of increase higher than the national rate were Manitoba (+18.2%), Quebec (+4.5%), and Prince Edward Island (+4.0%). Statistics Canada reports that the number of EI beneficiaries "fell slightly in Saskatchewan (-1.3%) and Newfoundland and Labrador (-1.0%), while it was little changed in Nova Scotia and Ontario."
-
-
-Data Source: Statistics Canada (https://www150.statcan.gc.ca/n1/daily-quotidien/180920/dq180920a-eng.htm)
-
-
-
-
-***
-
-### footnotes
-
-[^1]
->Geographical definitions: A census metropolitan area (CMA) or a census agglomeration (CA) is formed by one or more adjacent municipalities centred on a population centre. A CMA must have a total population of at least 100,000. A CA must have a population of at least 10,000. See Standard Geographical Classification 2011 – definitions for more information.
