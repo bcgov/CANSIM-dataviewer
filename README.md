@@ -108,3 +108,6 @@ Data downloaded and/or saved in this repository is sourced from Statistics Canad
 ---
 
 This repository is maintained by [BC Stats](http://www.bcstats.gov.bc.ca). Click [here](https://github.com/bcgov/BCStats) for a complete list of our repositories on GitHub.
+
+
+happy Wednesday!
