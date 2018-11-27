@@ -21,6 +21,8 @@ These pages contain links to data sources and related reference materials at Sta
 
 * [New Housing Price Index](doc/NHPI-datasources.Rmd)
 
+* [Survey of Employment, Payrolls, and Hours](doc/SEPH-datasources.Rmd)
+
 * [Wholesale Trade](https://github.com/bcgov/CANSIM-dataviewer/blob/master/doc/WholesaleTrade-datasources.Rmd)
 
 
