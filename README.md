@@ -30,15 +30,14 @@ These pages contain links to data sources and related reference materials at Sta
 
 ### more about CANSIM
 
-[CANSIM](http://www5.statcan.gc.ca/cansim/a01?lang=eng) is Statistics Canada's repository of socio-economic data.
+CANSIM was the name of Statistics Canada's data repository; old habits die hard and we continue to refer to the socio-economic data that Statistics Canada disseminates through the portal as "CANSIM".
 
-* CANSIM [table directory, by subject](http://www5.statcan.gc.ca/cansim/a29?lang=eng&p2=17)
-
-
-[CANSIM](http://www5.statcan.gc.ca/cansim/a01?lang=eng&p2=1) is the comprehensive database of socio-economic statistics, maintained by Statistics Canada. The database contains a wide variety of data series, from the familiar ([unemployment rates from the Labour Force Survey](http://www5.statcan.gc.ca/cansim/a26?lang=eng&retrLang=eng&id=2820087&&pattern=&stByVal=1&p1=1&p2=31&tabMode=dataTable&csid=) and the [Consumer Price Index](http://www5.statcan.gc.ca/cansim/a26?lang=eng&retrLang=eng&id=3260020&&pattern=&stByVal=1&p1=1&p2=31&tabMode=dataTable&csid=)) to more obscure topics (total sales by vending machine operators; vector v101256214 in Table 080-0028).
+The database contains a wide variety of data series, from the familiar ([unemployment rates from the Labour Force Survey](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410028703)) and the [Consumer Price Index](https://www150.statcan.gc.ca/n1/en/type/data?text=cpi)) to more obscure topics ([total sales by vending machine operators; vector v101256214](https://www150.statcan.gc.ca/t1/tbl1/en/sbv.action?vectorNumbers=v101256214&searchOption=2&latestN=1)).
 
 
 **CANSIM tutorials**
+
+_Note: these may not reflect the latest changes to Statistics Canada's website_
 
 - Statistics Canada has a [short step-by-step tutorial](http://www.statcan.gc.ca/about-apercu/video/cansim-trans-eng.html) on finding and saving data from CANSIM.
 
@@ -54,6 +53,10 @@ These pages contain links to data sources and related reference materials at Sta
 - [doc/interactiveDataVisual.Rmd](interactiveDataVisual.Rmd) & [doc/interactiveDataVisual.nb.html](interactiveDataVisual.nb.html) -- R Notebook and HTML file detailing the code in the `LFS_UR` script file.
 
 View the HTML file online [here](https://cdn.rawgit.com/bcgov/CANSIM-data-viewer/6d049cf9e919912f8fd185dc4b8e025671d61ae3/interactiveDataVisual.nb.html).
+
+- ** `cansim` **
+
+* Some scripts rely on the [`cansim`](https://github.com/mountainMath/cansim) R package
 
 
 - ** `CANSIM2R` **
