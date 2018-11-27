@@ -1,7 +1,4 @@
----
-title: "SEPH data sources"
-output: html_notebook
----
+# SEPH data sources
 
 ## Survey of Employment, Payrolls, and Hours (SEPH)
 
