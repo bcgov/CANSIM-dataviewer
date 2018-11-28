@@ -5,6 +5,14 @@ output:
   html_document: default
 ---
 
+<!--
+Copyright 2018 Province of British Columbia
+
+This work is licensed under the Creative Commons Attribution 4.0 International License.
+To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/.
+-->
+
+
 This notebook is intended to showcase the multitude of options that are available to create interactive data visualization with R. In addition, there is a brief section in the beginning meant to display a fairly straightforward method of downloading and utilizing data from CANSIM. The data being utilized comes from Statistics Canada's monthly "Labour Force Survey" (LFS). Actual application of anything detailed in here is not limited to a single type of dataset. 
 
 In general, the list of methods and packages is in no way meant to be exhaustive. Moreover, the code attached is not elaborated upon in tremendous detail. The assumption is that enough information is provided that anyone unfamiliar with the specific packages (but not unfamiliar with R as a whole) can quickly grasp the concept and proceed to play around with the code to get a sense of how they can utilize these packages for real-world applications. All the packages and functions mentioned here have varying degrees of documentation and numerous examples online. In most cases, a simple Google search on the name of the package can instantly provide anyone with a great deal of useful information. 
