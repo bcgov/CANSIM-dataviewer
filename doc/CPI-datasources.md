@@ -1,7 +1,5 @@
----
-title: "CPI data sources"
-output: html_notebook
----
+# CPI data sources
+
 
 ## Consumer Price Index (CPI)
 

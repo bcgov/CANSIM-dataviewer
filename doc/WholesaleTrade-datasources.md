@@ -1,7 +1,4 @@
----
-title: "Wholesale trade"
-output: html_notebook
----
+# Wholesale trade
 
 Code to summarize and plot wholesale trade statistcs from Statistics Canada.
 

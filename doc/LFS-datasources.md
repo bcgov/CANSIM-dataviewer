@@ -1,7 +1,5 @@
----
-title: "LFS data sources"
-output: html_notebook
----
+# LFS data sources
+
 
 ## Labour Force Survey
 

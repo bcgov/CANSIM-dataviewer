@@ -1,7 +1,5 @@
----
-title: "NHPI data sources"
-output: html_notebook
----
+# NHPI data sources
+
 
 ## New Housing Price Index
 
