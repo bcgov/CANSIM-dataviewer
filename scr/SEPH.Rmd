@@ -112,32 +112,30 @@ print(glue("TABLE:  ", filenamenum))
 
 ls.str(data_14_10_0223_01)
 
+unique(data_14_10_0223_01$Estimate)
+
+unique(data_14_10_0223_01$`North American Industry Classification System (NAICS)`)
+
 ```
 
 
 ```{r}
 data_14_10_0223_01 %>%
-  filter(GEO == "British Columbia") %>%
-#  filter(REF_DATE >= "2017-07-01", 
-  filter(REF_DATE %in% 
-           c(as.Date("2018-07-01"), 
-             as.Date("2018-06-01"), 
-             as.Date("2017-07-01")))
+  filter(GEO == "British Columbia",
+         Estimate == "Employment for all employees") %>%
+  filter(REF_DATE == "2018-07-01")
 
 ```
 
 
-
-### the pre-existing hoohah that needs modification
 
 ```{r}
 
 
 data_14_10_0223_01 %>%
   filter(GEO == "British Columbia",
-    `Adjustments` %in% c("Unadjusted", "Seasonally adjusted"),
-    `Classification Code for North American Industry Classification System (NAICS)` == "[44-45]") %>%
-  group_by(GEO, `Adjustments`) %>%
+    `Classification Code for North American Industry Classification System (NAICS)` == "[00-91N]") %>%
+#  group_by(GEO, `Adjustments`) %>%
   mutate(MOM_val = lag(VALUE),
          MOM_pct = ((VALUE / lag(VALUE, n = 1)) - 1) * 100,
          MOM_chg = (VALUE - lag(VALUE, n = 1)) ) %>%
@@ -146,15 +144,21 @@ data_14_10_0223_01 %>%
          YOY_chg = (VALUE - lag(VALUE, n = 12)) ) %>%
   arrange(desc(REF_DATE)) %>%
   select(REF_DATE, GEO,
-         Adjustments,
+         `North American Industry Classification System (NAICS)`,
          VALUE, 
          MOM_val, MOM_pct, MOM_chg,
          YOY_val, YOY_pct, YOY_chg) %>%
-  ungroup() %>%
-#  filter(REF_DATE >= "2017-07-01", 
-  filter(REF_DATE %in% c(as.Date("2018-07-01"), as.Date("2018-06-01"), as.Date("2017-07-01")), 
-         `Adjustments` == "Seasonally adjusted")
+  filter(REF_DATE >= "2017-07-01")
 
+```
+
+
+
+
+### the pre-existing hoohah that needs modification
+
+
+```{r}
 
 unique(data_20_10_0008$GEO)
 
