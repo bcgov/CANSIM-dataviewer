@@ -14,14 +14,17 @@
 
 ### data tables
 
-full search : [employment payroll hours](https://www150.statcan.gc.ca/n1/en/type/data?text=employment+payrolls+hours)
+full search : [employment payroll hours](https://www150.statcan.gc.ca/n1/en/type/data?sourcecode=2612)
 
 specific tables:
 
 * [Employment and average weekly earnings (including overtime) for all employees by province and territory, monthly, seasonally adjusted](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410022301)
 
-* [Employment, average hourly and weekly earnings (including overtime), and average weekly hours for the industrial aggregate excluding unclassified businesses, monthly, seasonally adjusted](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410022301)
+   - Table: 14-10-0223-01 (formerly CANSIM  281-0063)
 
+* [Average weekly hours for employees paid by the hour, by industry, monthly, unadjusted for seasonality](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410025501)
+
+  - Table: 14-10-0255-01 (formerly CANSIM  281-0032) 
 
 
 ### Scripts
