@@ -26,7 +26,7 @@ This set of scripts creates summary tables and graphs plotting the monthly SEPH 
 
 #### packages
 
-```{r}
+```{r packages}
 
 # tidyverse
 library(tidyverse)
@@ -91,7 +91,7 @@ The principal tables used here are:
 This script uses the [R package `cansim`](https://github.com/mountainMath/cansim)
 
 
-```{r}
+```{r data_read}
 
 data_14_10_0223_01 <- get_cansim("14-10-0223-01")
 
@@ -120,6 +120,12 @@ print("----")
 print("values of NAICS")
 unique(data_14_10_0223_01$`North American Industry Classification System (NAICS)`)
 
+
+print("----")
+print("most recent date in series (variable `lastmonth`)")
+lastmonth <- max(data_14_10_0223_01$REF_DATE)
+lastmonth
+
 ```
 
 
@@ -127,12 +133,12 @@ unique(data_14_10_0223_01$`North American Industry Classification System (NAICS)
 data_14_10_0223_01 %>%
   filter(GEO == "Canada",
          Estimate == "Employment for all employees") %>%
-  filter(REF_DATE == "2018-07-01")
+  filter(REF_DATE == lastmonth)
 
 data_14_10_0223_01 %>%
   filter(GEO == "British Columbia",
          Estimate == "Employment for all employees") %>%
-  filter(REF_DATE == "2018-07-01")
+  filter(REF_DATE == lastmonth)
 
 
 ```
@@ -152,7 +158,8 @@ Service producing industries	- Canada: v79310785 / BC: v79311055
 
 data_14_10_0223_01 %>%
   filter(GEO %in% c("British Columbia", "Canada"), 
-    `Classification Code for North American Industry Classification System (NAICS)` == "[00-91N]") %>%
+         `North American Industry Classification System (NAICS)` == "Industrial aggregate excluding unclassified businesses",
+         Estimate == "Employment for all employees") %>%
   group_by(GEO) %>%
   mutate(MOM_val = lag(VALUE),
          MOM_pct = ((VALUE / lag(VALUE, n = 1)) - 1) * 100,
