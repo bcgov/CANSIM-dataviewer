@@ -46,11 +46,21 @@ library("scales")
 #devtools::install_github("mountainmath/cansim")
 library(cansim)
 
+
+### ---
+# bonus function for "not in" (opposite of %in%)
+# https://stackoverflow.com/a/50255505/4170032
+`%!in%` <- purrr::compose(`!`, `%in%`)
+
 ```
 
 ---
 
 ## Background
+
+The Daily, 2018-11-29
+
+* https://www150.statcan.gc.ca/n1/daily-quotidien/181129/dq181129c-eng.htm
 
 The Daily, 2018-10-25
 
@@ -158,7 +168,8 @@ Service producing industries	- Canada: v79310785 / BC: v79311055
 
 data_14_10_0223_01 %>%
   filter(GEO %in% c("British Columbia", "Canada"), 
-         `North American Industry Classification System (NAICS)` == "Industrial aggregate excluding unclassified businesses",
+         `North American Industry Classification System (NAICS)` == 
+           "Industrial aggregate excluding unclassified businesses",
          Estimate == "Employment for all employees") %>%
   group_by(GEO) %>%
   mutate(MOM_val = lag(VALUE),
@@ -178,7 +189,8 @@ data_14_10_0223_01 %>%
 
 data_14_10_0223_01 %>%
   filter(GEO %in% c("British Columbia", "Canada"), 
-         `North American Industry Classification System (NAICS)` == "Industrial aggregate excluding unclassified businesses", 
+         `North American Industry Classification System (NAICS)` == 
+           "Industrial aggregate excluding unclassified businesses", 
          Estimate == "Average weekly earnings including overtime for all employees") %>%
   group_by(GEO) %>%
   mutate(MOM_val = lag(VALUE),
@@ -244,24 +256,186 @@ dataplot2
 
 # experiments with ggplot2's new subtitle and caption options
 
-EI_title <- as.character("Average weekly earnings including overtime for all employees")
-#EI_subtitle <- as.character("January 2010 = 100")
-EI_caption <- as.character("Source: Statistics Canada, CANSIM table 14-10-0223-01")
-EI_yaxis <- as.character("Dollars")
+SEPH_earnings_title <- as.character("Average weekly earnings including overtime for all employees")
+#SEPH_earnings_subtitle <- as.character("January 2010 = 100")
+SEPH_earnings_caption <- as.character("Source: Statistics Canada, CANSIM table 14-10-0223-01")
+SEPH_earnings_yaxis <- as.character("Dollars")
 
 # add titles / X-Y axis labels / caption
-EI_plot <- dataplot2 +
-  labs(title = EI_title,
-#       subtitle = EI_subtitle,
-       caption = EI_caption, 
-       x = NULL, y = EI_yaxis) 
+SEPH_earnings_plot <- dataplot2 +
+  labs(title = SEPH_earnings_title,
+#       subtitle = SEPH_earnings_subtitle,
+       caption = SEPH_earnings_caption, 
+       x = NULL, y = SEPH_earnings_yaxis) 
 
-EI_plot
+SEPH_earnings_plot
 
-ggsave(filename = "EI_plot.png", plot = EI_plot,
+ggsave(filename = "SEPH_earnings_plot.png", plot = SEPH_earnings_plot,
        width = 8, height = 6)
 
 ```
+
+
+### By sector
+
+Year-over-year change in average weekly earnings in the 10 largest sectors
+
+https://www150.statcan.gc.ca/n1/daily-quotidien/181129/cg-c002-eng.htm
+
+
+```{r}
+
+# Make a B.C. table for the most recent month
+
+BC_lastmonth <- data_14_10_0223_01 %>%
+  filter(GEO == "British Columbia") %>%
+  group_by(`North American Industry Classification System (NAICS)`,
+           Estimate) %>%
+  mutate(MOM_val = lag(VALUE),
+         MOM_pct = ((VALUE / lag(VALUE, n = 1)) - 1) * 100,
+         MOM_chg = (VALUE - lag(VALUE, n = 1)) ) %>%
+  mutate(YOY_val = lag(VALUE, n = 12),
+         YOY_pct = ((VALUE / lag(VALUE, n = 12)) - 1) * 100,
+         YOY_chg = (VALUE - lag(VALUE, n = 12)) ) %>%
+#  arrange(desc(VALUE)) %>%
+  select(REF_DATE, GEO, Estimate,
+         `North American Industry Classification System (NAICS)`,
+         VECTOR,
+         VALUE, 
+         MOM_val, MOM_pct, MOM_chg,
+         YOY_val, YOY_pct, YOY_chg) %>%
+  filter(REF_DATE == lastmonth)
+
+
+BC_lastmonth %>%
+  filter(Estimate == "Average weekly earnings including overtime for all employees")
+
+BC_lastmonth %>%
+  filter(Estimate == "Employment for all employees") 
+
+BC_lastmonth %>%
+  filter(Estimate == "Employment for all employees") %>%
+  arrange(desc(VALUE))
+
+
+# remove sector aggregations
+# note use of %!in% defined earlier
+BC_lastmonth %>%
+  na.omit() %>%
+  filter(Estimate == "Employment for all employees") %>%
+  arrange(desc(VALUE)) %>%
+  filter(VECTOR %!in% 
+           c("v79311043", "v79311046", "v79311055",
+             "v79311054", "v79311045")
+           ) 
+```
+
+
+
+#### Top 10 chart
+
+Retail trade	 6
+Professional, scientific and technical 13
+Accommodation and food services 8
+ALL SECTORS
+Wholesale trade 16
+Public admin 12
+Admin and support 15
+Construction 10
+Health care and social assistance	7
+Educational services 9
+Manufacturing 11
+bonus: Transportation and warehousing 14
+
+
+```{r}
+
+  
+top10list <- c("Retail trade", "Health care and social assistance",
+               "Accommodation and food services", "Educational services",
+               "Construction", "Manufacturing",
+               "Public administration", 
+               "Professional, scientific and technical services",
+               "Transportation and warehousing",
+               "Administrative and support, waste management and remediation services")
+
+
+BC_lastmonth %>%
+  filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
+  arrange(desc(MOM_pct)) %>%
+  filter(`North American Industry Classification System (NAICS)` %in% top10list)
+
+```
+
+
+
+
+```{r}
+
+dataplot <- 
+BC_lastmonth %>%
+  filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
+  arrange(desc(MOM_pct)) %>%
+  filter(`North American Industry Classification System (NAICS)` %in% top10list) %>%
+  ggplot(aes(x = VALUE,
+             y = reorder(`North American Industry Classification System (NAICS)`, VALUE) 
+             )) + 
+    geom_point()
+
+dataplot
+
+
+```
+
+
+
+
+```{r}
+
+dataplot2 <- dataplot +
+  ylim(700, 1050) +
+  scale_y_continuous(labels = comma, limits = c(700, 1050)) +
+  scale_colour_manual(name=NULL,
+                      breaks=c("Canada", "British Columbia"),
+                      labels=c("Canada", "British Columbia"), 
+                      values=c("#325A80", "#CCB550")) +
+  theme_bw() +
+  theme(
+    panel.border = element_rect(colour="white"),
+    plot.title = element_text(face="bold"),
+    legend.position=c(1,0), 
+    legend.justification=c(1,0),
+    legend.title = element_text(size=12),
+    legend.text = element_text(size=11),
+    axis.line = element_line(colour="black"),
+    axis.title = element_text(size=10),
+    axis.text = element_text(size=10)
+  )
+#
+dataplot2 
+
+# experiments with ggplot2's new subtitle and caption options
+
+SEPH_earnings_title <- as.character("Average weekly earnings including overtime for all employees")
+#SEPH_earnings_subtitle <- as.character("January 2010 = 100")
+SEPH_earnings_caption <- as.character("Source: Statistics Canada, CANSIM table 14-10-0223-01")
+SEPH_earnings_yaxis <- as.character("Dollars")
+
+# add titles / X-Y axis labels / caption
+SEPH_earnings_plot <- dataplot2 +
+  labs(title = SEPH_earnings_title,
+#       subtitle = SEPH_earnings_subtitle,
+       caption = SEPH_earnings_caption, 
+       x = NULL, y = SEPH_earnings_yaxis) 
+
+SEPH_earnings_plot
+
+ggsave(filename = "SEPH_earnings_plot.png", plot = SEPH_earnings_plot,
+       width = 8, height = 6)
+
+```
+
+
 
 
 -30-
