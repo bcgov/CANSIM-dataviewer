@@ -359,6 +359,28 @@ top10list <- c("Retail trade", "Health care and social assistance",
                "Transportation and warehousing",
                "Administrative and support, waste management and remediation services")
 
+BC_lastmonth <- 
+BC_lastmonth %>%
+  mutate(NAICS_desc =
+           case_when(
+             `North American Industry Classification System (NAICS)` == 
+               "Health care and social assistance" ~ 
+               "Health care & social assistance",
+             `North American Industry Classification System (NAICS)` == 
+               "Accommodation and food services" ~ 
+               "Accommodation & food services",
+             `North American Industry Classification System (NAICS)` == 
+               "Professional, scientific and technical services" ~ 
+               "Professional, scientific & technical services",
+             `North American Industry Classification System (NAICS)` == 
+               "Transportation and warehousing" ~ 
+               "Transportation & warehousing",
+             `North American Industry Classification System (NAICS)` == 
+               "Administrative and support, waste management and remediation services" ~ 
+               "Administrative & support",
+             TRUE ~ `North American Industry Classification System (NAICS)`
+           ))
+
 
 BC_lastmonth %>%
   filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
@@ -378,12 +400,22 @@ BC_lastmonth %>%
   arrange(desc(MOM_pct)) %>%
   filter(`North American Industry Classification System (NAICS)` %in% top10list) %>%
   ggplot(aes(x = VALUE,
-             y = reorder(`North American Industry Classification System (NAICS)`, VALUE) 
+             y = reorder(NAICS_desc, VALUE) 
              )) + 
     geom_point()
 
 dataplot
 
+dataplot <- 
+BC_lastmonth %>%
+  filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
+  filter(`North American Industry Classification System (NAICS)` %in% top10list) %>%
+  ggplot(aes(x = MOM_pct,
+             y = reorder(NAICS_desc, MOM_pct))) +
+    geom_point() +
+    geom_segment(aes(yend=NAICS_desc), xend=0, colour="grey50")
+
+dataplot
 
 ```
 
@@ -393,12 +425,8 @@ dataplot
 ```{r}
 
 dataplot2 <- dataplot +
-  ylim(700, 1050) +
-  scale_y_continuous(labels = comma, limits = c(700, 1050)) +
-  scale_colour_manual(name=NULL,
-                      breaks=c("Canada", "British Columbia"),
-                      labels=c("Canada", "British Columbia"), 
-                      values=c("#325A80", "#CCB550")) +
+  xlim(-4, 6) +
+  scale_x_continuous(labels = comma, limits = c(-4, 6)) +
   theme_bw() +
   theme(
     panel.border = element_rect(colour="white"),
@@ -414,23 +442,30 @@ dataplot2 <- dataplot +
 #
 dataplot2 
 
+```
+
+
+
+```{r}
+
+
 # experiments with ggplot2's new subtitle and caption options
 
-SEPH_earnings_title <- as.character("Average weekly earnings including overtime for all employees")
-#SEPH_earnings_subtitle <- as.character("January 2010 = 100")
+SEPH_earnings_title <- as.character("B.C. Average weekly earnings\nincluding overtime")
+SEPH_earnings_subtitle <- as.character("September 2018 compared to August 2018")
 SEPH_earnings_caption <- as.character("Source: Statistics Canada, CANSIM table 14-10-0223-01")
-SEPH_earnings_yaxis <- as.character("Dollars")
+SEPH_earnings_xaxis <- as.character("Month-over-month percent change")
 
 # add titles / X-Y axis labels / caption
 SEPH_earnings_plot <- dataplot2 +
   labs(title = SEPH_earnings_title,
-#       subtitle = SEPH_earnings_subtitle,
+       subtitle = SEPH_earnings_subtitle,
        caption = SEPH_earnings_caption, 
-       x = NULL, y = SEPH_earnings_yaxis) 
+       y = NULL, x = SEPH_earnings_xaxis) 
 
 SEPH_earnings_plot
 
-ggsave(filename = "SEPH_earnings_plot.png", plot = SEPH_earnings_plot,
+ggsave(filename = "SEPH_earnings_change_plot.png", plot = SEPH_earnings_plot,
        width = 8, height = 6)
 
 ```
