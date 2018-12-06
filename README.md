@@ -39,6 +39,9 @@ The database contains a wide variety of data series, from the familiar ([unemplo
 
 **CANSIM tutorials**
 
+[How to access StatsCan data through their new API](https://codx.ca/how-to-access-statscan-data-through-their-new-api/), ODX, 2018-11-28
+
+
 _Note: these may not reflect the latest changes to Statistics Canada's website_
 
 - Statistics Canada has a [short step-by-step tutorial](http://www.statcan.gc.ca/about-apercu/video/cansim-trans-eng.html) on finding and saving data from CANSIM.
