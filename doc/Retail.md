@@ -21,3 +21,6 @@ Retail Trade (discontinued)
 * [Tables: 63-005-X](https://www150.statcan.gc.ca/n1/en/catalogue/63-005-X)
 
 
+## scripts
+
+[Retail trade](scr/Retail_trade.Rmd)
