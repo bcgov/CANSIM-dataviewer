@@ -23,7 +23,7 @@ These pages contain links to data sources and related reference materials at Sta
 
 * [Survey of Employment, Payrolls, and Hours (SEPH)](doc/SEPH-datasources.md) 
 
-* [Wholesale Trade](https://github.com/bcgov/CANSIM-dataviewer/blob/master/doc/WholesaleTrade-datasources.md)
+* [Wholesale Trade](doc/WholesaleTrade-datasources.md)
 
 
 
