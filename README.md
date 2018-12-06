@@ -13,17 +13,17 @@ The repo contains the code, written in [R](https://cran.r-project.org/), includi
 
 These pages contain links to data sources and related reference materials at Statistics Canada, and to the R scripts developed for extracting, tabulating, and viewing those data.
 
-* [Consumer Price Index](doc/CPI-datasources.Rmd)
+* [Consumer Price Index (CPI)](doc/CPI-datasources.md)
 
-* [Labour Force Survey](doc/LFS-datasources.Rmd)
+* [Labour Force Survey (LFS)](doc/LFS-datasources.md)
 
-* [Manufacturing (Monthly Survey of Manufacturing)](doc/Manufacturing.Rmd)
+* [Manufacturing (Monthly Survey of Manufacturing)](doc/Manufacturing.md)
 
-* [New Housing Price Index](doc/NHPI-datasources.Rmd)
+* [New Housing Price Index (NHPI)](doc/NHPI-datasources.md)
 
-* [Survey of Employment, Payrolls, and Hours](doc/SEPH-datasources.Rmd)
+* [Survey of Employment, Payrolls, and Hours (SEPH)](doc/SEPH-datasources.md) 
 
-* [Wholesale Trade](https://github.com/bcgov/CANSIM-dataviewer/blob/master/doc/WholesaleTrade-datasources.Rmd)
+* [Wholesale Trade](https://github.com/bcgov/CANSIM-dataviewer/blob/master/doc/WholesaleTrade-datasources.md)
 
 
 
