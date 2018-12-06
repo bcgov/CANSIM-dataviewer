@@ -19,21 +19,30 @@ To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0
 > Monthly survey estimates are produced by a combination of a census of payroll deductions, provided by the Canada Revenue Agency, and the Business Payrolls Survey (BPS), which collects data from a sample of 15,000 businesses. The BPS also collects information about job vacancies, supplemental to the SEPH (see Job Vacancy Statistics, record number 5202).
 
 
-### data tables
+### Data tables
 
 full search : [employment payroll hours](https://www150.statcan.gc.ca/n1/en/type/data?sourcecode=2612)
 
-specific tables:
 
-* [Employment and average weekly earnings (including overtime) for all employees by province and territory, monthly, seasonally adjusted](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410022301)
+There are multiple (13) data tables associated with the SEPH:
+https://www150.statcan.gc.ca/n1/daily-quotidien/181025/dq181025a-cansim-eng.htm
 
-   - Table: 14-10-0223-01 (formerly CANSIM  281-0063)
+The principal tables used here are:
 
-* [Average weekly hours for employees paid by the hour, by industry, monthly, unadjusted for seasonality](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410025501)
+* Employment and average weekly earnings (including overtime) for all employees by province and territory, monthly, seasonally adjusted
 
-  - Table: 14-10-0255-01 (formerly CANSIM  281-0032) 
+  - Table: 14-10-0223-01 (formerly CANSIM  281-0063)
+  
+  - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410022301
+
+
+* Average weekly hours for employees paid by the hour, by industry, monthly, unadjusted for seasonality
+
+  - Table: 14-10-0255-01 (formerly CANSIM  281-0032)
+
+  - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410025501
 
 
 ### Scripts
 
-
+* [SEPH](scr/SEPH.Rmd)
