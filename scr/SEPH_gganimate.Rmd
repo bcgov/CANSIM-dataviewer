@@ -1,0 +1,177 @@
+---
+title: "SEPH_medianwage_animate"
+author: "Martin Monkman"
+date: "December 14, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(lubridate)
+library(ggthemes)
+library(ggrepel)
+
+# Package to pull in cansim data, courtesy of Jens von Bergman and Dmitry Shkolnik
+library(cansim) 
+
+# Now update to the newest gganimate version
+#install.packages("devtools")
+#devtools::install_github('thomasp85/gganimate')
+library(gganimate)
+
+```
+
+## source
+
+This is plagarized from Blake Schaffer's ["Making animated charts with gganimate"](https://www.blakeshaffer.ca/post/making-animated-charts-with-gganimate/)
+
+
+Schaffer created a chart showing the per capita GDP of each Canadian province, using Statistics Canada data from 1981-2017.
+
+For this makeover, we'll look at median income values, drawn from the Survey of Employment, Payrolls and Hours (SEPH).
+
+
+```{r cars}
+provlist <- c("British Columbia","Alberta","Saskatchewan","Manitoba","Ontario","Quebec","New Brunswick","Nova Scotia","Prince Edward Island","Newfoundland and Labrador")
+
+short_provs <- function(df){
+  df <- df %>%
+    filter(GEO %in% c("British Columbia","Alberta","Saskatchewan","Manitoba","Ontario","Quebec","New Brunswick","Nova Scotia","Prince Edward Island","Newfoundland and Labrador"))
+  df <- df %>%
+    mutate(GEO.short = case_when(
+      GEO=="British Columbia" ~ "BC",
+      GEO=="Alberta" ~ "AB",
+      GEO=="Saskatchewan" ~ "SK",
+      GEO=="Manitoba" ~ "MB",
+      GEO=="Ontario" ~ "ON",
+      GEO=="Quebec" ~ "QC",
+      GEO=="New Brunswick" ~ "NB",
+      GEO=="Prince Edward Island" ~ "PE",
+      GEO=="Nova Scotia" ~ "NS",
+      GEO=="Newfoundland and Labrador" ~ "NL"
+    ))
+  df$GEO.short <- factor(df$GEO.short, levels=c("BC","AB","SK","MB","ON","QC","NB","PE","NS","NL"))
+}
+
+```
+
+
+get the data
+
+
+```{r data_read}
+
+data_14_10_0223_01 <- get_cansim("14-10-0223-01")
+
+data_14_10_0223_01 <- data_14_10_0223_01 %>%
+    mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
+
+
+AWE <- data_14_10_0223_01 %>%
+  filter(GEO %in% provlist, 
+         `North American Industry Classification System (NAICS)` == "Industrial aggregate excluding unclassified businesses", 
+         Estimate == "Average weekly earnings including overtime for all employees")  %>%
+  mutate(year = year(REF_DATE),
+         month = month(REF_DATE)) %>%
+  select(GEO, REF_DATE, year, month, VALUE)
+
+AWE$GEO.short <- short_provs(AWE)
+
+AWE
+
+AWE_annual <- AWE %>%
+  group_by(GEO.short, year) %>%
+  summarise(AWE_ann_avg = mean(VALUE)) %>%
+  mutate(year = as.integer(year))
+
+AWE_annual
+
+```
+
+
+
+plot B.C. trend line
+
+```{r}
+
+AWE %>%
+  filter(GEO.short == "BC") %>%
+  ggplot(aes(x = REF_DATE, y = VALUE)) +
+  geom_line()
+
+```
+
+
+animated plot using annual average AWE
+
+```{r}
+
+
+ggplot(AWE_annual, aes(GEO.short, AWE_ann_avg, fill = GEO.short, label=GEO.short)) +
+  geom_col()+
+#  geom_text(vjust=-.1)+
+  scale_fill_viridis_d(name="")+
+  scale_y_continuous(labels=scales::dollar)+
+#  theme_tufte(base_size = 14)+
+  theme(legend.position = "none") +
+#        axis.text.x = element_blank(),
+#        axis.ticks = element_blank())+
+# Here comes the gganimate specific bits
+  labs(title = "Year: {frame_time}", x = "", y = "Average weekly earnings") +
+  transition_time(year) +
+  ease_aes('linear')        
+
+```
+
+
+
+animated plot using monthly values
+
+_note: this doesn't work very well -- the value is a sum of the months of the year, and the labs(title) is a decimalized fraction of the year
+
+
+```{r}
+
+
+ggplot(AWE, aes(GEO.short, VALUE, fill = GEO.short, label=GEO.short)) +
+  geom_col()+
+#  geom_text(vjust=-.1)+
+  scale_fill_viridis_d(name="")+
+  scale_y_continuous(labels=scales::dollar)+
+#  theme_tufte(base_size = 14)+
+  theme(legend.position = "none") +
+#        axis.text.x = element_blank(),
+#        axis.ticks = element_blank())+
+# Here comes the gganimate specific bits
+  labs(title = "Year: {frame_time}", x = "", y = "Average weekly earnings") +
+  transition_time(year) +
+  ease_aes('linear')        
+
+```
+
+
+
+2nd attempt at monthly values, but with transition_time(month)
+
+```{r}
+
+
+ggplot(AWE, aes(GEO.short, VALUE, fill = GEO.short, label=GEO.short)) +
+  geom_col()+
+#  geom_text(vjust=-.1)+
+  scale_fill_viridis_d(name="")+
+  scale_y_continuous(labels=scales::dollar)+
+#  theme_tufte(base_size = 14)+
+  theme(legend.position = "none") +
+#        axis.text.x = element_blank(),
+#        axis.ticks = element_blank())+
+# Here comes the gganimate specific bits
+  labs(title = "Year: {frame_time}", x = "", y = "Average weekly earnings") +
+  transition_time(month) +
+  ease_aes('linear')        
+
+```
+
+
