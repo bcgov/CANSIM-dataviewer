@@ -33,6 +33,12 @@ Schaffer created a chart showing the per capita GDP of each Canadian province, u
 For this makeover, we'll look at median income values, drawn from the Survey of Employment, Payrolls and Hours (SEPH).
 
 
+### gganimate reference material
+
+[github page](https://github.com/thomasp85/gganimate)
+
+
+
 ```{r cars}
 provlist <- c("British Columbia","Alberta","Saskatchewan","Manitoba","Ontario","Quebec","New Brunswick","Nova Scotia","Prince Edward Island","Newfoundland and Labrador")
 
@@ -109,7 +115,7 @@ animated plot using annual average AWE
 ```{r}
 
 
-ggplot(AWE_annual, aes(GEO.short, AWE_ann_avg, fill = GEO.short, label=GEO.short)) +
+p <- ggplot(AWE_annual, aes(GEO.short, AWE_ann_avg, fill = GEO.short, label=GEO.short)) +
   geom_col()+
 #  geom_text(vjust=-.1)+
   scale_fill_viridis_d(name="")+
@@ -122,6 +128,10 @@ ggplot(AWE_annual, aes(GEO.short, AWE_ann_avg, fill = GEO.short, label=GEO.short
   labs(title = "Year: {frame_time}", x = "", y = "Average weekly earnings") +
   transition_time(year) +
   ease_aes('linear')        
+
+p
+
+animate(p, nframes = 100, fps = 5, end_pause = 20) # use anim_save(filename) to save
 
 ```
 
