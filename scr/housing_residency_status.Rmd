@@ -42,7 +42,7 @@ library(glue)
 # monthly data series
 library(lubridate)
 # extending ggplot2
-library("scales")
+library(scales)
 
 # cansim
 #install.packages("devtools")
@@ -74,6 +74,16 @@ The table used:
   - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=4610001801
 
 
+Geography references
+
+* [Census Geography](https://www12.statcan.gc.ca/census-recensement/2016/geo/index-eng.cfm)
+
+* [Geography Catalogue, Census year 2016](https://www150.statcan.gc.ca/n1/pub/92-196-x/92-196-x2016001-eng.htm)
+
+* [Correspondence Files, Reference Guide](https://www150.statcan.gc.ca/n1/pub/92-156-g/92-156-g2016001-eng.htm)
+
+
+
 
 ### Read the data
 
@@ -85,20 +95,148 @@ This script uses the [R package `cansim`](https://github.com/mountainMath/cansim
 
 ```{r data_read}
 
-data_46_10_0018_01 <- get_cansim("46-10-0018-01")
+CHSP_data_CDN <- get_cansim("46-10-0018-01")
 
-
-housing_data <- data_46_10_0018_01
-
-ls.str(housing_data)
 
 ```
+
+
+```{r}
+
+CHSP_data_CDN %>%
+  select(GEO, GeoUID) %>%
+  group_by(GEO, GeoUID) %>%
+  tally() %>%
+  arrange(GeoUID)
+
+
+# create level of geography variable
+
+CMA_list <- CHSP_data_CDN %>%
+  filter(str_detect(GeoUID, "\\[\\d{3}\\]")) %>%
+  pull(DGUID) %>%
+  unique()
+
+
+CHSP_data_CDN <- 
+CHSP_data_CDN %>%
+  mutate(GEO_level =
+           case_when(
+             DGUID %in% CMA_list ~ "CMA",
+             is.na(DGUID) ~ "CMA",
+             str_detect(GeoUID, "\\[\\d\\d\\]") ~ "PROV",
+             TRUE ~ "CSD"
+             )
+           )
+
+
+# quick test
+CHSP_data_CDN %>%
+  filter(GEO_level == "CMA") %>%
+  pull(GEO) %>%
+  unique()
+
+
+# --------
+# create GEO_prov
+
+
+CHSP_data_CDN <-
+  CHSP_data_CDN %>%
+  mutate(GEO_prov =
+           str_sub(GeoUID, start = 2, end = 3)
+         )
+
+CHSP_data_CDN %>%
+  group_by(GEO_prov) %>%
+  tally()
+
+# no, that's not quite right--the CMAs are messing it up
+
+CMA_names_list <- CHSP_data_CDN %>%
+  filter(GEO_level == "CMA") %>%
+  pull(GEO) %>%
+  unique()
+
+CMA_names_list
+
+CHSP_data_CDN <-
+CHSP_data_CDN %>%
+  mutate(GEO_prov =
+           case_when(
+             GEO == "Halifax, census metropolitan area" ~ "12",                       
+             GEO == "Nova Scotia, outside of census metropolitan areas" ~ "12",       
+             GEO == "Barrie, census metropolitan area" ~ "35",                        
+             GEO == "Belleville, census metropolitan area" ~ "35",                    
+             GEO == "Brantford, census metropolitan area" ~ "35",                     
+             GEO == "Greater Sudbury, census metropolitan area" ~ "35",               
+             GEO == "Guelph, census metropolitan area" ~ "35",                        
+             GEO == "Hamilton, census metropolitan area" ~ "35",                      
+             GEO == "Kingston, census metropolitan area" ~ "35",                      
+             GEO == "Kitchener-Cambridge-Waterloo, census metropolitan area" ~ "35",  
+             GEO == "London, census metropolitan area" ~ "35",                        
+             GEO == "Oshawa, census metropolitan area" ~ "35",                        
+             GEO == "Ottawa-Gatineau (Ontario part), census metropolitan area" ~ "35",
+             GEO == "Peterborough, census metropolitan area" ~ "35",                  
+             GEO == "St. Catharines-Niagara, census metropolitan area" ~ "35",        
+             GEO == "Thunder Bay, census metropolitan area" ~ "35",                   
+             GEO == "Toronto, census metropolitan area" ~ "35",                       
+             GEO == "Windsor, census metropolitan area" ~ "35",                       
+             GEO == "Ontario, outside of census metropolitan areas" ~ "35",           
+             GEO == "Abbotsford-Mission, census metropolitan area" ~ "59",            
+             GEO == "Kelowna, census metropolitan area" ~ "59",                       
+             GEO == "Vancouver, census metropolitan area" ~ "59",                     
+             GEO == "Victoria, census metropolitan area" ~ "59",                      
+             GEO == "British Columbia, outside of census metropolitan areas" ~ "59",
+             TRUE ~ str_sub(GeoUID, start = 2, end = 3)
+           ))
+
+
+CHSP_data_CDN %>%
+  group_by(GEO_prov) %>%
+  tally()
+
+```
+
 
 
 ---
 
 #### some quick summaries of the data 
 
+```{r}
+
+housing_data_BCprov <- CHSP_data_CDN %>%
+  filter(GEO == "British Columbia") 
+
+housing_data_BC_all <- 
+CHSP_data_CDN %>%
+  filter(!str_detect(GeoUID, "\\[595\\]"))%>%
+  filter(str_detect(GeoUID, "\\[59")) 
+
+```
+
+
+
+```{r}
+
+unique(housing_data_BC_all$GEO)
+
+unique(housing_data_BC_all$GeoUID)
+
+```
+
+
+```{r}
+housing_data_BC %>%
+  filter(Estimates == "Median assessment value",
+         `Residency status` != "Total, all residency status categories") %>%
+  select(GEO, `Property type`, `Period of construction`, `Residency status`,
+         Estimates, UOM, VALUE) 
+
+
+
+```
 
 
 
