@@ -1,0 +1,106 @@
+---
+title: "Residency status of residential properties"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: inline
+---
+<!--
+Copyright 2018 Province of British Columbia
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and limitations under the License.
+-->
+
+
+# Residential status of residential properties
+
+
+This set of scripts creates summary tables and graphs plotting Canadian Housing Statistics Program (CHSP) data collected and reported by Statistics Canada.
+
+
+#### packages
+
+```{r packages}
+
+# tidyverse
+library(tidyverse)
+#library(readr)
+#library(ggplot2) 
+#library(dplyr)
+library(stringr)
+library(glue)
+
+# monthly data series
+library(lubridate)
+# extending ggplot2
+library("scales")
+
+# cansim
+#install.packages("devtools")
+#devtools::install_github("mountainmath/cansim")
+library(cansim)
+
+
+### ---
+# bonus function for "not in" (opposite of %in%)
+# https://stackoverflow.com/a/50255505/4170032
+`%!in%` <- purrr::compose(`!`, `%in%`)
+
+```
+
+---
+
+## Background
+
+
+
+## data
+
+The table used:
+
+* Residency status of residential properties by property type and period of construction, provinces of Nova Scotia, Ontario and British Columbia
+
+  - Table: 46-10-0018-01 
+  
+  - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=4610001801
+
+
+
+### Read the data
+
+
+**NOTE:**
+
+This script uses the [R package `cansim`](https://github.com/mountainMath/cansim)
+
+
+```{r data_read}
+
+data_46_10_0018_01 <- get_cansim("46-10-0018-01")
+
+
+housing_data <- data_46_10_0018_01
+
+ls.str(housing_data)
+
+```
+
+
+---
+
+#### some quick summaries of the data 
+
+
+
+
+
+-30-
