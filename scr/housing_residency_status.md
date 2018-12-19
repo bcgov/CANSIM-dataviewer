@@ -1,11 +1,3 @@
----
-title: "Residency status of residential properties"
-output:
-  html_document:
-    df_print: paged
-editor_options:
-  chunk_output_type: inline
----
 <!--
 Copyright 2018 Province of British Columbia
 
