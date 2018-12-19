@@ -76,12 +76,15 @@ The table used:
 
 Geography references
 
+* [Geographic Attribute File](https://www150.statcan.gc.ca/n1/en/catalogue/92-151-X)
+
+* [Geographic Attribute File, Reference Guide](https://www150.statcan.gc.ca/n1/pub/92-151-g/92-151-g2016001-eng.htm)
+
 * [Census Geography](https://www12.statcan.gc.ca/census-recensement/2016/geo/index-eng.cfm)
 
 * [Geography Catalogue, Census year 2016](https://www150.statcan.gc.ca/n1/pub/92-196-x/92-196-x2016001-eng.htm)
 
 * [Correspondence Files, Reference Guide](https://www150.statcan.gc.ca/n1/pub/92-156-g/92-156-g2016001-eng.htm)
-
 
 
 
