@@ -60,6 +60,10 @@ library(cansim)
 
 ## Background
 
+The Daily, 2018-12-20
+
+* https://www150.statcan.gc.ca/n1/daily-quotidien/181220/dq181220b-eng.htm
+
 The Daily, 2018-11-29
 
 * https://www150.statcan.gc.ca/n1/daily-quotidien/181129/dq181129c-eng.htm
@@ -389,10 +393,18 @@ BC_lastmonth %>%
   arrange(desc(MOM_pct)) %>%
   filter(`North American Industry Classification System (NAICS)` %in% top10list)
 
+
+BC_lastmonth %>%
+  filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
+  arrange(desc(YOY_pct)) %>%
+  filter(`North American Industry Classification System (NAICS)` %in% top10list)
+
 ```
 
 
 
+
+Month over month plot
 
 ```{r}
 
@@ -424,11 +436,31 @@ dataplot
 
 
 
+Year over year plot
+
+```{r}
+
+
+dataplot <- 
+BC_lastmonth %>%
+  filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
+  filter(`North American Industry Classification System (NAICS)` %in% top10list) %>%
+  ggplot(aes(x = YOY_pct,
+             y = reorder(NAICS_desc, YOY_pct))) +
+    geom_point(colour="grey50", size = 4) +
+    geom_segment(aes(yend=NAICS_desc), xend=0, colour="grey50", size = 1.25)
+
+dataplot
+
+```
+
+
 ```{r}
 
 dataplot2 <- dataplot +
-  xlim(-4, 6) +
-  scale_x_continuous(labels = comma, limits = c(-4, 6)) +
+  scale_x_continuous(labels = comma, 
+                     limits = c(-4, 8),
+                     breaks = seq(-4, 8, 2)) +
   theme_bw() +
   theme(
     panel.border = element_rect(colour="white"),
@@ -454,9 +486,9 @@ dataplot2
 # experiments with ggplot2's new subtitle and caption options
 
 SEPH_earnings_title <- as.character("B.C. Average weekly earnings\nincluding overtime")
-SEPH_earnings_subtitle <- as.character("September 2018 compared to August 2018")
+SEPH_earnings_subtitle <- as.character("October 2018 compared to October 2017")
 SEPH_earnings_caption <- as.character("Source: Statistics Canada, CANSIM table 14-10-0223-01")
-SEPH_earnings_xaxis <- as.character("Month-over-month percent change")
+SEPH_earnings_xaxis <- as.character("Year-over-year percent change")
 
 # add titles / X-Y axis labels / caption
 SEPH_earnings_plot <- dataplot2 +
