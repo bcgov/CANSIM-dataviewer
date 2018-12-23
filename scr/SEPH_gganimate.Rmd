@@ -133,6 +133,8 @@ p
 
 animate(p, nframes = 100, fps = 5, end_pause = 20) # use anim_save(filename) to save
 
+anim_save("SEPH_AWE_anim_01.gif")
+
 ```
 
 

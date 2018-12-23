@@ -505,6 +505,82 @@ ggsave(filename = "SEPH_earnings_change_plot.png", plot = SEPH_earnings_plot,
 ```
 
 
+#### facet by sector
+
+```{r}
+# Make a B.C. table for the top ten sectors, going back to 2008-01
+
+BC_decade <- data_14_10_0223_01 %>%
+  filter(GEO == "British Columbia") %>%
+  group_by(`North American Industry Classification System (NAICS)`,
+           Estimate) %>%
+  mutate(MOM_val = lag(VALUE),
+         MOM_pct = ((VALUE / lag(VALUE, n = 1)) - 1) * 100,
+         MOM_chg = (VALUE - lag(VALUE, n = 1)) ) %>%
+  mutate(YOY_val = lag(VALUE, n = 12),
+         YOY_pct = ((VALUE / lag(VALUE, n = 12)) - 1) * 100,
+         YOY_chg = (VALUE - lag(VALUE, n = 12)) ) %>%
+#  arrange(desc(VALUE)) %>%
+  select(REF_DATE, GEO, Estimate,
+         `North American Industry Classification System (NAICS)`,
+         VECTOR,
+         VALUE, 
+         MOM_val, MOM_pct, MOM_chg,
+         YOY_val, YOY_pct, YOY_chg) %>%
+  filter(REF_DATE >= "2008-01-01")
+
+
+BC_decade %>%
+  filter(Estimate == "Average weekly earnings including overtime for all employees")
+
+BC_decade %>%
+  filter(Estimate == "Employment for all employees") 
+
+BC_decade %>%
+  filter(Estimate == "Employment for all employees") %>%
+  arrange(desc(VALUE))
+
+```
+
+
+
+```{r}
+
+BC_decade %>%
+  filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
+  filter(`North American Industry Classification System (NAICS)` %in% top10list) %>%
+  ggplot(aes(x = REF_DATE,
+             y = VALUE, 
+             colour = `North American Industry Classification System (NAICS)`)) +
+    geom_line()
+
+dataplot <-
+BC_decade %>%
+  filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
+  filter(`North American Industry Classification System (NAICS)` %in% top10list) %>%
+  ggplot(aes(x = REF_DATE,
+             y = VALUE)) +
+    geom_line()
+  
+
+dataplot +
+  facet_grid(. ~ `North American Industry Classification System (NAICS)`)
+
+dataplot +
+  facet_grid(cols = vars(`North American Industry Classification System (NAICS)`))
+
+dataplot +
+  facet_grid(rows = vars(`North American Industry Classification System (NAICS)`))
+
+
+
+```
+
+
+
+Sort the facets from smallest value to highest
+
+see https://ggplot2.tidyverse.org/reference/facet_grid.html
 
 
 -30-
