@@ -117,10 +117,31 @@ data_14_10_0223_01 <- get_cansim("14-10-0223-01")
 data_14_10_0223_01 <- data_14_10_0223_01 %>%
     mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
 
+data_14_10_0223_01 <- data_14_10_0223_01 %>%
+  mutate(NAICS_desc =
+           case_when(
+             `North American Industry Classification System (NAICS)` == 
+               "Health care and social assistance" ~ 
+               "Health care & social assistance",
+             `North American Industry Classification System (NAICS)` == 
+               "Accommodation and food services" ~ 
+               "Accommodation & food services",
+             `North American Industry Classification System (NAICS)` == 
+               "Professional, scientific and technical services" ~ 
+               "Professional, scientific & technical services",
+             `North American Industry Classification System (NAICS)` == 
+               "Transportation and warehousing" ~ 
+               "Transportation & warehousing",
+             `North American Industry Classification System (NAICS)` == 
+               "Administrative and support, waste management and remediation services" ~ 
+               "Administrative & support",
+             TRUE ~ `North American Industry Classification System (NAICS)`
+           ))
+
 # convert NAICS name to factor for ease of use later  
 data_14_10_0223_01 <- data_14_10_0223_01 %>%
-    mutate(`North American Industry Classification System (NAICS)` = 
-             as_factor(`North American Industry Classification System (NAICS)`)) 
+    mutate(NAICS_desc = 
+             as_factor(NAICS_desc)) 
 
 ```
 
@@ -141,7 +162,7 @@ unique(data_14_10_0223_01$Estimate)
 
 print("----")
 print("values of NAICS")
-unique(data_14_10_0223_01$`North American Industry Classification System (NAICS)`)
+unique(data_14_10_0223_01$NAICS_desc)
 
 
 print("----")
@@ -238,6 +259,16 @@ dataplot <- data_14_10_0223_01 %>%
   scale_x_date(date_breaks = "1 year", date_labels = "%Y",
                minor_breaks = NULL)
   
+dataplot <- data_14_10_0223_01 %>%
+  filter(GEO %in% c("British Columbia", "Canada"), 
+         NAICS_desc == "Industrial aggregate excluding unclassified businesses", 
+         Estimate == "Average weekly earnings including overtime for all employees") %>%
+  filter(REF_DATE >= as.Date("2008-01-01")) %>%
+  ggplot(aes(x=REF_DATE, y=VALUE, group = GEO, colour = GEO)) + 
+    geom_line(size=1.5) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y",
+               minor_breaks = NULL)
+  
 dataplot
 
 ```
@@ -310,7 +341,7 @@ https://www150.statcan.gc.ca/n1/daily-quotidien/181129/cg-c002-eng.htm
 
 BC_lastmonth <- data_14_10_0223_01 %>%
   filter(GEO == "British Columbia") %>%
-  group_by(`North American Industry Classification System (NAICS)`,
+  group_by(NAICS_desc,
            Estimate) %>%
   mutate(MOM_val = lag(VALUE),
          MOM_pct = ((VALUE / lag(VALUE, n = 1)) - 1) * 100,
@@ -372,22 +403,26 @@ bonus: Transportation and warehousing 14
 
 ```{r}
 
-  
-top10list <- c("Retail trade", "Health care and social assistance",
-               "Accommodation and food services", "Educational services",
+##   version from `North American Industry Classification System (NAICS)`
+#top10list <- c("Retail trade", "Health care and social assistance",
+#               "Accommodation and food services", "Educational services",
+#               "Construction", "Manufacturing",
+#               "Public administration", 
+#               "Professional, scientific and technical services",
+#               "Transportation and warehousing",
+#               "Administrative and support, waste management and remediation services")
+
+# NAICS_desc version
+top10list <- c("Retail trade", "Health care & social assistance",
+               "Accommodation & food services", "Educational services",
                "Construction", "Manufacturing",
                "Public administration", 
-               "Professional, scientific and technical services",
-               "Transportation and warehousing",
-               "Administrative and support, waste management and remediation services")
+               "Professional, scientific & technical services",
+               "Transportation & warehousing",
+               "Administrative & support")
 
 top10list_fac <- as_factor(top10list)
 
-#BC_lastmonth %>%
-#  mutate(as_factor(`North American Industry Classification System (NAICS)`))
-#
-# this doesn't work! Generates warning
-# "Unequal factor levels: coercing to characterbinding character and factor vector"
 
 ```
 
@@ -397,45 +432,16 @@ top10list_fac <- as_factor(top10list)
 
 ```{r}
 
-BC_lastmonth <- 
-BC_lastmonth %>%
-  mutate(NAICS_desc =
-           case_when(
-             `North American Industry Classification System (NAICS)` == 
-               "Health care and social assistance" ~ 
-               "Health care & social assistance",
-             `North American Industry Classification System (NAICS)` == 
-               "Accommodation and food services" ~ 
-               "Accommodation & food services",
-             `North American Industry Classification System (NAICS)` == 
-               "Professional, scientific and technical services" ~ 
-               "Professional, scientific & technical services",
-             `North American Industry Classification System (NAICS)` == 
-               "Transportation and warehousing" ~ 
-               "Transportation & warehousing",
-             `North American Industry Classification System (NAICS)` == 
-               "Administrative and support, waste management and remediation services" ~ 
-               "Administrative & support",
-             TRUE ~ `North American Industry Classification System (NAICS)`
-           ))
-
-#BC_lastmonth %>%
-#  mutate(as_factor(NAICS_desc))
-#
-# also does not work (see above)
-
-
-
 BC_lastmonth %>%
   filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
   arrange(desc(MOM_pct)) %>%
-  filter(`North American Industry Classification System (NAICS)` %in% top10list)
-
+  filter(NAICS_desc %in% top10list)
 
 BC_lastmonth %>%
   filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
   arrange(desc(YOY_pct)) %>%
-  filter(`North American Industry Classification System (NAICS)` %in% top10list)
+  filter(NAICS_desc %in% top10list)
+
 
 ```
 
@@ -450,7 +456,7 @@ dataplot <-
 BC_lastmonth %>%
   filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
   arrange(desc(MOM_pct)) %>%
-  filter(`North American Industry Classification System (NAICS)` %in% top10list) %>%
+  filter(NAICS_desc %in% top10list) %>%
   ggplot(aes(x = VALUE,
              y = reorder(NAICS_desc, VALUE) 
              )) + 
@@ -461,7 +467,7 @@ dataplot
 dataplot <- 
 BC_lastmonth %>%
   filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
-  filter(`North American Industry Classification System (NAICS)` %in% top10list) %>%
+  filter(NAICS_desc %in% top10list) %>%
   ggplot(aes(x = MOM_pct,
              y = reorder(NAICS_desc, MOM_pct))) +
     geom_point() +
@@ -482,7 +488,7 @@ Year over year plot
 dataplot <- 
 BC_lastmonth %>%
   filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
-  filter(`North American Industry Classification System (NAICS)` %in% top10list) %>%
+  filter(NAICS_desc %in% top10list) %>%
   ggplot(aes(x = YOY_pct,
              y = reorder(NAICS_desc, YOY_pct))) +
     geom_point(colour="grey50", size = 4) +
@@ -550,7 +556,7 @@ ggsave(filename = "SEPH_earnings_change_plot.png", plot = SEPH_earnings_plot,
 
 BC_decade <- data_14_10_0223_01 %>%
   filter(GEO == "British Columbia") %>%
-  group_by(`North American Industry Classification System (NAICS)`,
+  group_by(NAICS_desc,
            Estimate) %>%
   mutate(MOM_val = lag(VALUE),
          MOM_pct = ((VALUE / lag(VALUE, n = 1)) - 1) * 100,
@@ -560,7 +566,7 @@ BC_decade <- data_14_10_0223_01 %>%
          YOY_chg = (VALUE - lag(VALUE, n = 12)) ) %>%
 #  arrange(desc(VALUE)) %>%
   select(REF_DATE, GEO, Estimate,
-         `North American Industry Classification System (NAICS)`,
+         NAICS_desc,
          VECTOR,
          VALUE, 
          MOM_val, MOM_pct, MOM_chg,
@@ -586,29 +592,29 @@ BC_decade %>%
 
 BC_decade %>%
   filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
-  filter(`North American Industry Classification System (NAICS)` %in% top10list) %>%
+  filter(NAICS_desc %in% top10list) %>%
   ggplot(aes(x = REF_DATE,
              y = VALUE, 
-             colour = `North American Industry Classification System (NAICS)`)) +
+             colour = NAICS_desc)) +
     geom_line()
 
 dataplot <-
 BC_decade %>%
   filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
-  filter(`North American Industry Classification System (NAICS)` %in% top10list) %>%
+  filter(NAICS_desc %in% top10list) %>%
   ggplot(aes(x = REF_DATE,
              y = VALUE)) +
     geom_line()
   
 
 dataplot +
-  facet_grid(. ~ `North American Industry Classification System (NAICS)`)
+  facet_grid(. ~ NAICS_desc)
 
 dataplot +
-  facet_grid(cols = vars(`North American Industry Classification System (NAICS)`))
+  facet_grid(cols = vars(NAICS_desc))
 
 dataplot +
-  facet_grid(rows = vars(`North American Industry Classification System (NAICS)`))
+  facet_grid(rows = vars(NAICS_desc))
 
 
 
