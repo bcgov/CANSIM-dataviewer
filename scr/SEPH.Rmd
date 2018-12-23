@@ -112,9 +112,15 @@ This script uses the [R package `cansim`](https://github.com/mountainMath/cansim
 
 data_14_10_0223_01 <- get_cansim("14-10-0223-01")
 
+
+# convert date field to ISO8601 with day of month (default to 01)
 data_14_10_0223_01 <- data_14_10_0223_01 %>%
     mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
-  
+
+# convert NAICS name to factor for ease of use later  
+data_14_10_0223_01 <- data_14_10_0223_01 %>%
+    mutate(`North American Industry Classification System (NAICS)` = 
+             as_factor(`North American Industry Classification System (NAICS)`)) 
 
 ```
 
@@ -377,6 +383,19 @@ top10list <- c("Retail trade", "Health care and social assistance",
 
 top10list_fac <- as_factor(top10list)
 
+#BC_lastmonth %>%
+#  mutate(as_factor(`North American Industry Classification System (NAICS)`))
+#
+# this doesn't work! Generates warning
+# "Unequal factor levels: coercing to characterbinding character and factor vector"
+
+```
+
+
+
+
+
+```{r}
 
 BC_lastmonth <- 
 BC_lastmonth %>%
@@ -400,6 +419,10 @@ BC_lastmonth %>%
              TRUE ~ `North American Industry Classification System (NAICS)`
            ))
 
+#BC_lastmonth %>%
+#  mutate(as_factor(NAICS_desc))
+#
+# also does not work (see above)
 
 
 
