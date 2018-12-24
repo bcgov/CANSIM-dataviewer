@@ -613,6 +613,10 @@ dataplot +
 dataplot +
   facet_grid(cols = vars(NAICS_desc))
 
+```
+
+```{r}
+
 dataplot +
   facet_grid(rows = vars(NAICS_desc))
 
@@ -621,6 +625,18 @@ dataplot +
 ```
 
 
+```{r}
+
+dataplot +
+  facet_wrap( ~ NAICS_desc, ncol = 3)
+
+
+```
+
+
+
+#### Plot: facet by sector, sorted
+
 
 Sort the facets from smallest value to highest
 
@@ -628,6 +644,55 @@ see https://ggplot2.tidyverse.org/reference/facet_grid.html
 
 https://forcats.tidyverse.org/reference/fct_reorder.html
 
+http://stat545.com/block029_factors.html
 
+
+
+```{r}
+
+levels(BC_decade$NAICS_desc)
+
+# create a top 10 list table
+
+BC_decade_top10 <-
+BC_decade %>%
+  filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
+  filter(NAICS_desc %in% top10list) %>%
+  mutate(max_earn = max(VALUE))
+
+# prune the NAICS_desc list, reorder by maximum earning value
+
+BC_decade_top10$NAICS_desc <- 
+  fct_drop(BC_decade_top10$NAICS_desc)
+
+BC_decade_top10$NAICS_desc <- 
+  fct_reorder(BC_decade_top10$NAICS_desc, BC_decade_top10$max_earn, max)
+
+BC_decade_top10$NAICS_desc %>%  
+  levels()
+
+# summary table of maximum values
+BC_decade_top10 %>%
+  group_by(NAICS_desc) %>%
+  summarise(max_sal = max(VALUE))
+
+
+```
+
+
+
+```{r}
+
+dataplot <-
+BC_decade_top10 %>%
+  ggplot(aes(x = REF_DATE,
+             y = VALUE)) +
+    geom_line()
+
+dataplot +
+  facet_wrap( ~ NAICS_desc, ncol = 2)
+
+
+```
 
 -30-
