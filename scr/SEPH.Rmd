@@ -323,7 +323,7 @@ ggsave(filename = "SEPH_earnings_plot.png", plot = SEPH_earnings_plot,
 ```
 
 
-#### Provincial comparision
+#### Plot: Provincial comparision
 
 add faceted plot of growth by province
 
@@ -340,6 +340,9 @@ dataplot <- data_14_10_0223_01 %>%
 dataplot
 
 ```
+
+
+#### Plot: facet provincial comparision
 
 ```{r}
 
@@ -713,6 +716,7 @@ https://forcats.tidyverse.org/reference/fct_reorder.html
 http://stat545.com/block029_factors.html
 
 
+_re-order factors by maximum earning value_
 
 ```{r}
 
