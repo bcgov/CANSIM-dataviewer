@@ -141,7 +141,8 @@ data_14_10_0223_01 <- data_14_10_0223_01 %>%
 # convert NAICS name to factor for ease of use later  
 data_14_10_0223_01 <- data_14_10_0223_01 %>%
     mutate(NAICS_desc = 
-             as_factor(NAICS_desc)) 
+             as_factor(NAICS_desc),
+           GEO = as_factor(GEO)) 
 
 ```
 
@@ -385,13 +386,97 @@ dataplot +
 ```
 
 
+
+#### Plot: facet prov sort
+
+
 _note to self:_
 
-* reorder, with Canada first, then sorted by province's max
+* reorder, with Canada first, then sorted by province 
+
+see https://ggplot2.tidyverse.org/reference/facet_grid.html
+
+https://forcats.tidyverse.org/reference/fct_reorder.html
+
+http://stat545.com/block029_factors.html
+
+
+```{r}
+
+unique(data_14_10_0223_01$GEO)
+
+CAN_GEO_list <- c("Canada", "British Columbia", "Alberta", "Ontario", "Quebec")
+
+CAN_plus5 <- data_14_10_0223_01 %>%
+  filter(GEO %in% CAN_GEO_list)
+
+CAN_plus5$GEO <- fct_relevel(CAN_plus5$GEO, CAN_GEO_list)
+CAN_plus5$GEO <- fct_drop(CAN_plus5$GEO)
+
+levels(CAN_plus5$GEO)
+
+dataplot <- CAN_plus5 %>%
+  filter(`North American Industry Classification System (NAICS)` == "Industrial aggregate excluding unclassified businesses", 
+         Estimate == "Average weekly earnings including overtime for all employees") %>%
+  ggplot(aes(x=REF_DATE, y=VALUE)) + 
+  geom_line(size=1.5) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y",
+               minor_breaks = NULL)
+
+dataplot +
+  facet_wrap( ~ GEO, ncol = 2)
+
+
+
+
+```
+
+```{r}
+
+BC_decade_top10 <-
+BC_decade %>%
+  filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
+  filter(NAICS_desc %in% top10list) %>%
+  mutate(max_earn = max(VALUE))
+
+# prune the NAICS_desc list, reorder by maximum earning value
+
+BC_decade_top10$NAICS_desc <- 
+  fct_drop(BC_decade_top10$NAICS_desc)
+
+BC_decade_top10$NAICS_desc <- 
+  fct_reorder(BC_decade_top10$NAICS_desc, BC_decade_top10$max_earn, max)
+
+BC_decade_top10$NAICS_desc %>%  
+  levels()
+
+# summary table of maximum values
+BC_decade_top10 %>%
+  group_by(NAICS_desc) %>%
+  summarise(max_sal = max(VALUE))
+
+
+```
+
+
 
 * option 2: remove territories (skewed high)
 
 * option 3: Canada plus 5 largest provs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ---
 
@@ -708,12 +793,6 @@ dataplot +
 
 
 Sort the facets from smallest value to highest
-
-see https://ggplot2.tidyverse.org/reference/facet_grid.html
-
-https://forcats.tidyverse.org/reference/fct_reorder.html
-
-http://stat545.com/block029_factors.html
 
 
 _re-order factors by maximum earning value_
