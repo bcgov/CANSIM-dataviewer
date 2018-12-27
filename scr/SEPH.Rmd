@@ -172,6 +172,7 @@ lastmonth
 
 ```
 
+## -- Industrial aggregate
 
 ```{r}
 data_14_10_0223_01 %>%
@@ -322,7 +323,72 @@ ggsave(filename = "SEPH_earnings_plot.png", plot = SEPH_earnings_plot,
 ```
 
 
+#### Provincial comparision
 
+add faceted plot of growth by province
+
+```{r}
+
+dataplot <- data_14_10_0223_01 %>%
+  filter(`North American Industry Classification System (NAICS)` == "Industrial aggregate excluding unclassified businesses", 
+         Estimate == "Average weekly earnings including overtime for all employees") %>%
+  ggplot(aes(x=REF_DATE, y=VALUE, group = GEO, colour = GEO)) + 
+  geom_line(size=1.5) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y",
+               minor_breaks = NULL)
+
+dataplot
+
+```
+
+```{r}
+
+dataplot <- data_14_10_0223_01 %>%
+  filter(`North American Industry Classification System (NAICS)` == "Industrial aggregate excluding unclassified businesses", 
+         Estimate == "Average weekly earnings including overtime for all employees") %>%
+  ggplot(aes(x=REF_DATE, y=VALUE)) + 
+  geom_line(size=1.5) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y",
+               minor_breaks = NULL)
+
+
+# old school syntax
+dataplot +
+  facet_grid(. ~ GEO)
+
+# nouvelle syntaxe scolaire
+dataplot +
+  facet_grid(cols = vars(GEO))
+
+
+```
+
+```{r}
+
+dataplot +
+  facet_grid(rows = vars(GEO))
+
+```
+
+
+```{r}
+
+dataplot +
+  facet_wrap( ~ GEO, ncol = 3)
+
+
+
+
+```
+
+
+_note to self:_
+
+* reorder, with Canada first, then sorted by province's max
+
+* option 2: remove territories (skewed high)
+
+* option 3: Canada plus 5 largest provs
 
 ---
 
