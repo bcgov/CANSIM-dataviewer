@@ -392,7 +392,9 @@ dataplot +
 
 _note to self:_
 
-* reorder, with Canada first, then sorted by province 
+* prune to Canada + largest 4 or 5 provinces
+
+* reorder by size 
 
 see https://ggplot2.tidyverse.org/reference/facet_grid.html
 
@@ -427,33 +429,6 @@ dataplot +
   facet_wrap( ~ GEO, ncol = 2)
 
 
-
-
-```
-
-```{r}
-
-BC_decade_top10 <-
-BC_decade %>%
-  filter(Estimate == "Average weekly earnings including overtime for all employees") %>%
-  filter(NAICS_desc %in% top10list) %>%
-  mutate(max_earn = max(VALUE))
-
-# prune the NAICS_desc list, reorder by maximum earning value
-
-BC_decade_top10$NAICS_desc <- 
-  fct_drop(BC_decade_top10$NAICS_desc)
-
-BC_decade_top10$NAICS_desc <- 
-  fct_reorder(BC_decade_top10$NAICS_desc, BC_decade_top10$max_earn, max)
-
-BC_decade_top10$NAICS_desc %>%  
-  levels()
-
-# summary table of maximum values
-BC_decade_top10 %>%
-  group_by(NAICS_desc) %>%
-  summarise(max_sal = max(VALUE))
 
 
 ```
