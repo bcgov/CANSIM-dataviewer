@@ -119,7 +119,7 @@ This script uses the [R package `cansim`](https://github.com/mountainMath/cansim
 
 ```{r data_read}
 
-data_14_10_0223_01 <- get_cansim("14-10-0223-01")
+data_14_10_0223_01 <- get_cansim("14-10-0223-01", refresh = TRUE)
 
 
 # convert date field to ISO8601 with day of month (default to 01)
