@@ -67,7 +67,10 @@ library(cansim)
 
 ## Background
 
-The Daily, 2018-12-20
+The Daily, 2019-01-30 (November 2018)
+https://www150.statcan.gc.ca/n1/daily-quotidien/190130/dq190130a-eng.htm 
+
+The Daily, 2018-12-20 (October 2018)
 
 * https://www150.statcan.gc.ca/n1/daily-quotidien/181220/dq181220b-eng.htm
 
