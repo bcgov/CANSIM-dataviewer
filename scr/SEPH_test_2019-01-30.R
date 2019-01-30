@@ -1,11 +1,18 @@
+library(cansim)
+
 data_SEPH1 <- get_cansim("14-10-0201-01", refresh = TRUE)
 max(data_SEPH1$REF_DATE)
+
 
 data_SEPH2 <- get_cansim("14-10-0203-01", refresh = TRUE)
 max(data_SEPH2$REF_DATE)
 
 data_SEPH3 <- get_cansim("14-10-0223-01", refresh = TRUE)
 max(data_SEPH3$REF_DATE)
+
+beepr::beep("treasure")
+
+
 
 # ----
 
