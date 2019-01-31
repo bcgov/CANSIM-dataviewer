@@ -119,7 +119,8 @@ This script uses the [R package `cansim`](https://github.com/mountainMath/cansim
 
 ```{r data_read}
 
-data_14_10_0223_01 <- get_cansim("14-10-0223-01", refresh = TRUE)
+#data_14_10_0223_01 <- get_cansim("14-10-0223-01", refresh = TRUE)
+data_14_10_0223_01 <- get_cansim("14-10-0223-01")
 
 
 # convert date field to ISO8601 with day of month (default to 01)
@@ -152,6 +153,9 @@ data_14_10_0223_01 <- data_14_10_0223_01 %>%
     mutate(NAICS_desc = 
              as_factor(NAICS_desc),
            GEO = as_factor(GEO)) 
+
+
+beepr::beep("treasure")
 
 ```
 
@@ -208,10 +212,12 @@ Goods producing industries	- Canada: v79310775 / BC: v79311045
 Service producing industries	- Canada: v79310785 / BC: v79311055
 
 
+#### summary tables
+
 ```{r}
 
 
-data_14_10_0223_01 %>%
+employment_BC_CAN <- data_14_10_0223_01 %>%
   filter(GEO %in% c("British Columbia", "Canada"), 
          `North American Industry Classification System (NAICS)` == 
            "Industrial aggregate excluding unclassified businesses",
@@ -231,8 +237,9 @@ data_14_10_0223_01 %>%
          YOY_val, YOY_pct, YOY_chg) %>%
   filter(REF_DATE >= "2008-01-01")
 
+employment_BC_CAN
 
-data_14_10_0223_01 %>%
+awe_BC_CAN <- data_14_10_0223_01 %>%
   filter(GEO %in% c("British Columbia", "Canada"), 
          `North American Industry Classification System (NAICS)` == 
            "Industrial aggregate excluding unclassified businesses", 
@@ -251,6 +258,8 @@ data_14_10_0223_01 %>%
          MOM_val, MOM_pct, MOM_chg,
          YOY_val, YOY_pct, YOY_chg) %>%
   filter(REF_DATE >= "2008-01-01")
+
+awe_BC_CAN
 
 ```
 
@@ -510,7 +519,7 @@ BC_lastmonth %>%
 
 # remove sector aggregations
 # note use of %!in% defined earlier
-BC_lastmonth %>%
+employment_BC_sector <- BC_lastmonth %>%
   na.omit() %>%
   filter(Estimate == "Employment for all employees") %>%
   arrange(desc(VALUE)) %>%
@@ -518,6 +527,9 @@ BC_lastmonth %>%
            c("v79311043", "v79311046", "v79311055",
              "v79311054", "v79311045")
            ) 
+
+employment_BC_sector
+
 ```
 
 
@@ -825,6 +837,14 @@ BC_decade_top10 %>%
 dataplot +
   facet_wrap( ~ NAICS_desc, ncol = 2)
 
+
+```
+
+
+
+```{r}
+
+print("FINITO")
 
 ```
 
