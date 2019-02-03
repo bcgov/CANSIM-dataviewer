@@ -570,5 +570,10 @@ dataplot2
 
 
 
+Next steps: add some animation, as per Leonard Kiefer's US Labor Force Participation Rate chart:
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Labor force participation rate <a href="https://twitter.com/hashtag/dataviz?src=hash&amp;ref_src=twsrc%5Etfw">#dataviz</a> made with <a href="https://twitter.com/hashtag/rstats?src=hash&amp;ref_src=twsrc%5Etfw">#rstats</a> <a href="https://twitter.com/hashtag/gganimate?src=hash&amp;ref_src=twsrc%5Etfw">#gganimate</a> <a href="https://t.co/uSICoLjbIf">pic.twitter.com/uSICoLjbIf</a></p>&mdash; Leonard Kiefer (@lenkiefer) <a href="https://twitter.com/lenkiefer/status/1091352582776410113?ref_src=twsrc%5Etfw">February 1, 2019</a></blockquote>
+
+
 
 -30-
