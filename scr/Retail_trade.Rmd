@@ -52,6 +52,11 @@ library(cansim)
 
 ## Background
 
+The Daily, 2019-02-22
+
+* https://www150.statcan.gc.ca/n1/daily-quotidien/190222/dq190222a-eng.htm?HPA=1
+
+
 The Daily, 2018-09-21
 
 * https://www150.statcan.gc.ca/n1/daily-quotidien/180921/dq180921b-eng.htm
@@ -77,7 +82,7 @@ https://www150.statcan.gc.ca/n1/daily-quotidien/180921/dq180921b-cansim-eng.htm
 
   - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=2010007201
   
-* Retail sales, price, and volume, seasonally adjusted (x 1,000,000)
+* Retail sales, price, and volume, seasonally adjusted (x 1,000,000): Constant Prices
 
   - Table: 20-10-0078-01 (formerly CANSIM  080-0027)
 
@@ -98,6 +103,11 @@ data_20_10_0008 <- data_20_10_0008 %>%
     mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
   
 
+data_20_10_0078 <- get_cansim("20-10-0078-01")
+
+data_20_10_0078 <- data_20_10_0078 %>%
+    mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
+  
 ```
 
 
@@ -132,7 +142,7 @@ data_20_10_0008 %>%
          YOY_val, YOY_pct, YOY_chg) %>%
   ungroup() %>%
 #  filter(REF_DATE >= "2017-07-01", 
-  filter(REF_DATE %in% c(as.Date("2018-07-01"), as.Date("2018-06-01"), as.Date("2017-07-01")), 
+  filter(REF_DATE %in% c(as.Date("2018-12-01"), as.Date("2018-11-01"), as.Date("2017-12-01")), 
          `Adjustments` == "Seasonally adjusted")
 
 
@@ -159,8 +169,10 @@ data_Can_BC_YVR <- data_20_10_0008 %>%
          YOY_val, YOY_pct, YOY_chg) %>%
   ungroup() 
 
+data_Can_BC_YVR
+
 data_Can_BC_YVR %>%
-  filter(REF_DATE %in% c(as.Date("2018-07-01"), as.Date("2018-06-01"), as.Date("2017-07-01")),
+  filter(REF_DATE %in% c(as.Date("2018-12-01"), as.Date("2018-11-01"), as.Date("2017-12-01")),
 #  filter(REF_DATE %in% c(as.Date("2018-07-01", "2018-06-01", "2017-07-01")),
          GEO == "Canada",
          `Classification Code for North American Industry Classification System (NAICS)` == "[44-45]",
@@ -196,7 +208,14 @@ BC_data_0008 <-
 BC_data_0008
 
 BC_data_0008 %>%
-  filter(REF_DATE == "2018-07-01")
+  filter(REF_DATE == "2018-12-01",
+         `Classification Code for North American Industry Classification System (NAICS)` == "[44-45]") %>%
+  select(REF_DATE, GEO, 
+         `North American Industry Classification System (NAICS)`,
+         Adjustments, VALUE,
+         MOM_val, MOM_pct) %>%
+  mutate(MOM_netchange = VALUE - MOM_val) %>%
+  arrange(MOM_netchange)
 
 write_csv(BC_data_0008, "BC_data_0008.csv")
 
