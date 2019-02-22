@@ -124,7 +124,8 @@ ls.str(data_20_10_0008)
 
 
 data_20_10_0008 %>%
-  filter(GEO == "British Columbia",
+  filter(
+#    GEO == "British Columbia",
     `Adjustments` %in% c("Unadjusted", "Seasonally adjusted"),
     `Classification Code for North American Industry Classification System (NAICS)` == "[44-45]") %>%
   group_by(GEO, `Adjustments`) %>%
@@ -142,8 +143,12 @@ data_20_10_0008 %>%
          YOY_val, YOY_pct, YOY_chg) %>%
   ungroup() %>%
 #  filter(REF_DATE >= "2017-07-01", 
-  filter(REF_DATE %in% c(as.Date("2018-12-01"), as.Date("2018-11-01"), as.Date("2017-12-01")), 
-         `Adjustments` == "Seasonally adjusted")
+  filter(REF_DATE %in% c(as.Date("2018-12-01")
+#                         , 
+#                         as.Date("2018-11-01"), as.Date("2017-12-01")
+                         ), 
+         `Adjustments` == "Seasonally adjusted") %>%
+  arrange(MOM_pct)
 
 
 unique(data_20_10_0008$GEO)
@@ -208,8 +213,10 @@ BC_data_0008 <-
 BC_data_0008
 
 BC_data_0008 %>%
-  filter(REF_DATE == "2018-12-01",
-         `Classification Code for North American Industry Classification System (NAICS)` == "[44-45]") %>%
+  filter(
+    REF_DATE == "2018-12-01",
+         `Classification Code for North American Industry Classification System (NAICS)` 
+         == "[44-45]") %>%
   select(REF_DATE, GEO, 
          `North American Industry Classification System (NAICS)`,
          Adjustments, VALUE,
@@ -217,9 +224,27 @@ BC_data_0008 %>%
   mutate(MOM_netchange = VALUE - MOM_val) %>%
   arrange(MOM_netchange)
 
+
+# Year over year, major retail groups (3 digit NAICS)
+BC_data_0008 %>%
+  filter(
+    REF_DATE == "2018-12-01",
+    str_detect(
+      `Classification Code for North American Industry Classification System (NAICS)`, "\\[4..\\]")
+    ) %>%
+    select(REF_DATE, GEO, 
+         `North American Industry Classification System (NAICS)`,
+         `Classification Code for North American Industry Classification System (NAICS)`, 
+         Adjustments, VALUE,
+#         MOM_val, MOM_pct, 
+         YOY_val, YOY_pct) %>%
+  mutate(YOY_netchange = VALUE - YOY_val) %>%
+  arrange(YOY_netchange)
+
 write_csv(BC_data_0008, "BC_data_0008.csv")
 
 ```
+
 
 
 
