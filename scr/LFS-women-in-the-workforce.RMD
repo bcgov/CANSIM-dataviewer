@@ -1,7 +1,7 @@
 ---
 title: "Women in the workforce"
 author: "Martin Monkman"
-date: "2018-03-26"
+date: "2019-02-26"
 output:
   html_document:
     df_print: paged
@@ -101,17 +101,18 @@ Request from media (unknown) about labour force participation of women age 20-44
 
 ```{r include=FALSE}
 
-# read the data
+# read the data - monthly
 data_14_10_0017_01 <- get_cansim("14-10-0017-01")
 
 data_14_10_0017_01 <- data_14_10_0017_01 %>%
     mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
 
-# read the data
+# read the data - annual
 data_14_10_0018_01 <- get_cansim("14-10-0018-01")
 
 #data_14_10_0018_01 <- data_14_10_0018_01 %>%
 #    mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
+
 
 thedata <- data_14_10_0018_01
 
@@ -172,23 +173,25 @@ dataplot2
 
 # add titles / X-Y axis labels / caption
 dataplot2 <- dataplot2 +
+  scale_x_discrete(breaks = c(1976, seq(1980, 2015, by = 5), 2018)) +
+#  theme(panel.grid.minor.x = c(1985, 1995, 2005, 2015)) +
   labs(title = "Labour force participation, females age 25-44, British Columbia & Canada",
        subtitle = "1976 - 2018 (annual)",
-       caption = "Source: Statistics Canada (Labour Force Survey, CANSIM table 14-10-0017-02)", 
+       caption = "Source: Statistics Canada (Labour Force Survey, CANSIM table 14-10-0018-01)", 
        x = NULL, y = "percentage")
 
 dataplot2
 
 # save the plot as a png file
-png("plot_labforpart_BCCan_female_25-44.png", width=1024, height=768, res=120)
-plot(dataplot2)
-dev.off()
+#png("plot_labforpart_BCCan_female_25-44.png", width=1024, height=768, res=120)
+#plot(dataplot2)
+#dev.off()
 
 
 ```
 
 
-For B.C. in `r max(thedata$REF_DATE)`, it was 82.4%. Nationally, it was 83.0%.
+For B.C. in `r max(thedata$REF_DATE)`, it was (pull value). Nationally, it was (pull value).
 
 The participation rate rose rapidly in the mid-1970s through to about 1990, since then it has been rising more slowly. When Statistics Canada started the  Labour Force Survey in 1976, nationally the labour force participation rate for women aged 25-44 was 54%; it gained 10 percentage points over the next five years to reach 65.2% in 1981, and another 10 percentage points by 1988 (75.3%). The rate of increase since then has been much more modest.
 
