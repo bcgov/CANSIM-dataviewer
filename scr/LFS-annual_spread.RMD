@@ -1,0 +1,87 @@
+---
+title: "Labour Force Survey"
+author: "Martin Monkman"
+date: "2019-02-26"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+  html_notebook:
+    toc: yes
+    toc_float: yes
+editor_options:
+  chunk_output_type: inline
+---
+<!--
+Copyright 2018 Province of British Columbia
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and limitations under the License.
+-->
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+# tidyverse
+library(tidyverse)
+
+# cansim: https://github.com/mountainMath/cansim
+#install.packages("devtools")
+#devtools::install_github("mountainmath/cansim")
+library(cansim)
+
+
+```
+
+
+
+## Labour Force Survey
+
+
+* Labour force characteristics by sex and detailed age group, annual (x 1,000)
+
+  - Table: 14-10-0018-01 (formerly CANSIM  282-0002)
+
+  - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410001801
+  
+
+[Statistics Canada Open License Agreement](http://www.statcan.gc.ca/eng/reference/licence)
+
+
+
+
+
+```{r include=FALSE}
+
+# read the data - annual
+LFS_annual <- get_cansim("14-10-0018-01")
+
+```
+
+
+
+### British Columbia: participation rate by sex and age
+
+
+```{r}
+
+# filter to have Canada
+LFS_annual_BC <- LFS_annual %>%
+  filter(GEO == "British Columbia",
+         `Labour force characteristics` == "Participation rate")
+
+LFS_annual_BC %>%
+  select(GEO, Sex, `Age group`, REF_DATE, VALUE) %>%
+  spread(REF_DATE, VALUE)
+
+```
+
