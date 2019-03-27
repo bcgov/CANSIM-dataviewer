@@ -81,6 +81,7 @@ library(cansim)
 
 library(dplyr)
 library(tidyr)
+library(forcats)
 
 ```
 
@@ -100,19 +101,42 @@ approximate what the original version is doing
 ```{r}
 
 DF <- DF_source %>%
+  # filter for values (rows)
   filter(REF_DATE > 2000,
          Sex == "Both sexes") %>%
+  # select and rename relevant variables (columns)
   select("t" = REF_DATE,
          "Class.of.worker" = `Class of worker`,
          "GEO",
          "NAICS" = `North American Industry Classification System (NAICS)`,
-         "VALUE")
+         "VALUE") %>%
+  # recode variables as factors; default retains order of original table
+  mutate(Class.of.worker = as_factor(Class.of.worker),
+         GEO = as_factor(GEO),
+         NAICS = as_factor(NAICS))
+
 
 Table <- DF %>%
-#  spread(key="Class.of.worker", value="VALUE")
-  spread(key="t", value="VALUE")
+  # restructure table from long to wide with year ("t") as variable
+  spread(key="t", value="VALUE") %>%
+  arrange(GEO, NAICS)
 
 Table
+
+
+```
+
+
+test 
+
+```{r}
+
+DF %>%
+  filter(GEO %in% c("Canada", "Newfoundland and Labrador"),
+         Class.of.worker == "Total employed, all classes of workers",
+         NAICS == "Total employed, all industries",
+         `t` == 2001)
+
 
 ```
 
