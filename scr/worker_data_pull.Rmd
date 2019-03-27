@@ -81,7 +81,7 @@ library(cansim)
 
 library(dplyr)
 library(tidyr)
-library(forcats)
+library(forcats) # for factor variables
 
 ```
 
