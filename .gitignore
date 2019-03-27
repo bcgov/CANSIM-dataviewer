@@ -3,8 +3,11 @@
 .RData
 .Ruserdata
 
-.html
+*.html
 
-.csv
-.xls
-.xlsx
+*.csv
+*.xls
+*.xlsx
+
+*.png
+*.jpg

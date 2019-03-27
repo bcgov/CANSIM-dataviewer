@@ -110,14 +110,14 @@ DF <- DF_source %>%
          "GEO",
          "NAICS" = `North American Industry Classification System (NAICS)`,
          "VALUE") %>%
-  # recode variables as factors; default retains order of original table
+  # recode variables as factors; by default retains order of source table
   mutate(Class.of.worker = as_factor(Class.of.worker),
          GEO = as_factor(GEO),
          NAICS = as_factor(NAICS))
 
 
 Table <- DF %>%
-  # restructure table from long to wide with year ("t") as variable
+  # restructure table from long to wide with year ("t") as column variable
   spread(key="t", value="VALUE") %>%
   arrange(GEO, NAICS)
 
