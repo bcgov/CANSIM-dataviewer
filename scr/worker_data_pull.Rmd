@@ -27,6 +27,8 @@ https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410002701
 
 Table: 14-10-0027-01 (formerly CANSIM  282-0012)
 
+Source: Labour Force Survey (LFS)
+http://www23.statcan.gc.ca/imdb/p2SV.pl?Function=getSurvey&SDDS=3701
 
 
 
@@ -82,6 +84,7 @@ library(cansim)
 library(dplyr)
 library(tidyr)
 library(forcats) # for factor variables
+library(readr)
 
 ```
 
@@ -96,7 +99,7 @@ DF_source
 ```
 
 
-approximate what the original version is doing
+replicate what the original version is doing
 
 ```{r}
 
@@ -140,3 +143,24 @@ DF %>%
 
 ```
 
+
+
+
+```{r}
+
+data_BC <- DF %>%
+  filter(GEO %in% c("British Columbia"),
+         Class.of.worker %in% c("Total employed, all classes of workers",
+                                "Public sector employees",
+                                "Private sector employees",
+                                "Self-employed"),
+         NAICS == "Total employed, all industries")
+
+data_BC <- data_BC %>%
+  group_by(Class.of.worker) %>%
+  mutate(change_net = VALUE - lag(VALUE),
+         change_pct = round((VALUE - lag(VALUE)) / lag(VALUE) * 100, 1))
+
+write_csv(data_BC, "data_BC.csv")
+
+```
