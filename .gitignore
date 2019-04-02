@@ -4,10 +4,14 @@
 .Ruserdata
 
 *.html
+*.pdf
 
 *.csv
+*.rds
 *.xls
 *.xlsx
+*.zip
 
 *.png
 *.jpg
+*.gif
