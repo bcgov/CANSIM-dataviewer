@@ -3,7 +3,7 @@ title: "NHPI"
 output: html_notebook
 ---
 <!--
-Copyright 2018 Province of British Columbia
+Copyright 2018-2019 Province of British Columbia
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -90,26 +90,51 @@ data_18_10_0205_01 <- data_18_10_0205_01 %>%
 
 ```
 
-## _got this far_
+## generalize data naming
+
+
+```{r}
+
+thedata <- data_18_10_0205_01
+
+thedata
+
+```
+
 
 
 #### data wrangling
 
+
+geography list
+
+* note: need stringr to allow filtering of `GeoUID`by 2-digit code (e.g., BC = 59)
+
 ```{r}
 
+unique(thedata$GEO)
 
-# fix dates
-class(thedata$Ref_Date)
-thedata$DATE <- as.Date(as.yearmon(thedata$Ref_Date, format="%Y/%m"))
-#
+thedata %>%
+#  filter(GeoUID == ) %>%
+  group_by(GEO, GeoUID) %>%
+  tally()
+
+```
+
+
+
+
+
+```{r}
 
 startdate <- as.Date("2007-01-01")
 
 
 # filter to have BC and Canada
 thedata_long <- thedata %>%
-  filter(DATE >= startdate) %>%
-  filter(GEO == c("British Columbia", "Canada"), INDEX == "Total (house and land)")
+  filter(REF_DATE >= startdate) %>%
+  filter(GEO %in% c("British Columbia", "Canada"), 
+         `New housing price indexes` == "Total (house and land)")
 
 thedata_long
 
@@ -124,11 +149,11 @@ thedata_long
 ```{r}
 # PLOT!
 # basic
-ggplot(thedata_long, aes(x=DATE, y=Value, group=GEO)) + 
+ggplot(thedata_long, aes(x=REF_DATE, y=VALUE, group=GEO)) + 
   geom_line()
 #
 # with formatting applied
-dataplot <- ggplot(thedata_long, aes(x=DATE, y=Value, colour=GEO)) + 
+dataplot <- ggplot(thedata_long, aes(x=REF_DATE, y=VALUE, colour=GEO)) + 
   geom_line(size=1.5) 
 dataplot
 
@@ -140,7 +165,7 @@ with more formatting
 
 dataplot2 <- dataplot +
   #  ylim(3500000, 6500000) +
-  scale_y_continuous(labels = comma, limits = c(80, 110)) +
+  scale_y_continuous(labels = comma, limits = c(80, 120)) +
   scale_colour_manual(name=NULL,
                       breaks=c("Canada", "British Columbia"),
                       labels=c("Canada", "British Columbia"), 
@@ -170,7 +195,7 @@ final version
 
 NHPI_title <- as.character("New Housing Price Index, Canada & B.C.")
 NHPI_subtitle <- as.character("December 2016 = 100")
-NHPI_caption <- as.character("Source: Statistics Canada, CANSIM table 327-0056")
+NHPI_caption <- as.character("Source: Statistics Canada, CANSIM table 18-10-0205-01")
 
 # add titles / X-Y axis labels
 dataplot2 +
@@ -209,4 +234,83 @@ ggsave(filename = "NHPI_plot.png", plot = NHPI_plot,
 ```
 
 
--30-
+***
+
+### Vancouver house and land version
+
+
+
+```{r}
+
+startdate <- as.Date("2007-01-01")
+
+
+# filter to have BC and Canada
+thedata_long <- thedata %>%
+  filter(REF_DATE >= startdate) %>%
+  filter(GEO %in% c("Vancouver, British Columbia"), 
+         `New housing price indexes` %in% c("House only", "Land only"))
+
+thedata_long
+
+
+```
+
+the plot
+
+```{r}
+
+# with formatting applied
+dataplot <- ggplot(thedata_long, aes(x=REF_DATE, y=VALUE, 
+                                     colour=`New housing price indexes`)) + 
+  geom_line(size=1.5) 
+dataplot
+
+
+dataplot2 <- dataplot +
+  #  ylim(3500000, 6500000) +
+  scale_y_continuous(labels = comma, limits = c(80, 120)) +
+  scale_colour_manual(name=NULL,
+                      breaks=c("House only", "Land only"),
+                      labels=c("House only", "Land only"), 
+                      values=c("#325A80", "#CCB550")) +
+  theme_bw() +
+  theme(
+    panel.border = element_rect(colour="white"),
+    plot.title = element_text(face="bold"),
+    legend.position=c(1,0), 
+    legend.justification=c(1,0),
+    legend.title = element_text(size=12),
+    legend.text = element_text(size=11),
+    axis.line = element_line(colour="black"),
+    axis.title = element_text(size=12),
+    axis.text = element_text(size=12)
+  )
+#
+dataplot2 
+
+
+
+
+# set chart titles and labels
+
+NHPI_title <- as.character("New Housing Price Index, Vancouver: house and land")
+NHPI_subtitle <- as.character("December 2016 = 100")
+NHPI_caption <- as.character("Source: Statistics Canada, CANSIM table 18-10-0205-01")
+
+# final version
+# add titles / X-Y axis labels / caption
+NHPI_Vancouver_plot <- dataplot2 +
+  labs(title = NHPI_title,
+       subtitle = NHPI_subtitle,
+       caption = NHPI_caption, 
+       x = NULL, y = "NHPI (Dec. 2016 = 100)") 
+
+NHPI_Vancouver_plot
+
+ggsave(filename = "NHPI_Vancouver_plot.png", plot = NHPI_Vancouver_plot,
+       width = 8, height = 6)
+
+
+```
+
