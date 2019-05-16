@@ -73,7 +73,9 @@ data_36_10_0480_01 <- get_cansim("36-10-0480-01")
 
 # -- this seemed unnecessary until I used year as a plotting variable
 thedata <- data_36_10_0480_01 %>%
-  mutate(REF_DATE = as_factor(REF_DATE))
+  mutate(REF_DATE = as_factor(REF_DATE),
+         Industry = as_factor(Industry),
+         `Classification Code for Industry` = as_factor(`Classification Code for Industry`))
 #  mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) %>%
 #  mutate(REF_DATE = year(REF_DATE))
 
@@ -96,9 +98,13 @@ geography list
 unique(thedata$GEO)
 
 thedata %>%
-#  filter(GeoUID == ) %>%
   group_by(GEO, GeoUID) %>%
   tally()
+
+industry_table <- thedata %>%
+  group_by(Industry, `Classification Code for Industry`) %>%
+  tally()
+industry_table
 
 thedata %>%
   group_by(`Labour productivity and related measures`) %>%
@@ -126,6 +132,12 @@ thedata_BC <-
   thedata_BC %>%
   filter(str_length(`Classification Code for Industry`) == 6) %>%
   filter(REF_DATE == 1997)
+
+indutry_table_BC <- thedata_BC %>%
+  group_by(Industry, `Classification Code for Industry`) %>%
+  tally()
+indutry_table_BC
+
 
 thedata_BC
 
