@@ -1,6 +1,8 @@
 ---
 title: "NHPI"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 <!--
 Copyright 2018-2019 Province of British Columbia
