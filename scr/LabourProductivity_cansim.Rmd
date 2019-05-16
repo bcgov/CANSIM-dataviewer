@@ -133,10 +133,10 @@ thedata_BC <-
   filter(str_length(`Classification Code for Industry`) == 6) %>%
   filter(REF_DATE == 1997)
 
-indutry_table_BC <- thedata_BC %>%
+industry_table_BC <- thedata_BC %>%
   group_by(Industry, `Classification Code for Industry`) %>%
   tally()
-indutry_table_BC
+industry_table_BC
 
 
 thedata_BC
