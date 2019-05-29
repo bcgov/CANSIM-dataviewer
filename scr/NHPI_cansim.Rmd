@@ -34,6 +34,7 @@ This version (updated 2018-12-13) uses the `cansim` package to pull the data fro
 library(tidyverse)
 #library(readr)
 #library("ggplot2") # NOTE: requires ggplot 2.2.0 
+
 library("lubridate")
 
 # monthly data series
@@ -84,24 +85,21 @@ https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810020501
 
 #thedata <- read_csv("../data/03270056-eng.csv")
 
-data_18_10_0205_01 <- get_cansim("18-10-0205-01")
-data_18_10_0205_01 <- data_18_10_0205_01 %>%
+table_id = "18-10-0205-01"
+
+
+thedata <- get_cansim(table_id)
+thedata <- thedata %>%
     mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
 
+get_cansim_table_overview(table_id)
 
-
-```
-
-## generalize data naming
-
-
-```{r}
-
-thedata <- data_18_10_0205_01
 
 thedata
 
+
 ```
+
 
 
 
@@ -315,4 +313,112 @@ ggsave(filename = "NHPI_Vancouver_plot.png", plot = NHPI_Vancouver_plot,
 
 
 ```
+
+
+***
+
+***
+
+### Halifax house and land version
+
+
+
+```{r}
+
+startdate <- as.Date("2007-01-01")
+
+
+# filter to have BC and Canada
+thedata_long <- thedata %>%
+  filter(REF_DATE >= startdate) %>%
+  filter(GEO %in% c("Halifax, Nova Scotia"), 
+         `New housing price indexes` %in% c("House only", "Land only"))
+
+thedata_long
+
+
+```
+
+the plot
+
+```{r}
+
+# with formatting applied
+dataplot <- ggplot(thedata_long, aes(x=REF_DATE, y=VALUE, 
+                                     colour=`New housing price indexes`)) + 
+  geom_line(size=1.5) 
+dataplot
+
+
+dataplot2 <- dataplot +
+  #  ylim(3500000, 6500000) +
+  scale_y_continuous(labels = comma, limits = c(70, 110)) +
+  scale_colour_manual(name=NULL,
+                      breaks=c("House only", "Land only"),
+                      labels=c("House only", "Land only"), 
+                      values=c("#325A80", "#CCB550")) +
+  theme_bw() +
+  theme(
+    panel.border = element_rect(colour="white"),
+    plot.title = element_text(face="bold"),
+    legend.position=c(1,0), 
+    legend.justification=c(1,0),
+    legend.title = element_text(size=12),
+    legend.text = element_text(size=11),
+    axis.line = element_line(colour="black"),
+    axis.title = element_text(size=12),
+    axis.text = element_text(size=12)
+  )
+#
+dataplot2 
+
+
+
+
+# set chart titles and labels
+
+NHPI_title <- as.character("New Housing Price Index, Halifax: house and land")
+NHPI_subtitle <- as.character("December 2016 = 100")
+NHPI_caption <- as.character("Source: Statistics Canada, CANSIM table 18-10-0205-01")
+
+# final version
+# add titles / X-Y axis labels / caption
+NHPI_Halifax_plot <- dataplot2 +
+  labs(title = NHPI_title,
+       subtitle = NHPI_subtitle,
+       caption = NHPI_caption, 
+       x = NULL, y = "NHPI (Dec. 2016 = 100)") 
+
+NHPI_Halifax_plot
+
+ggsave(filename = "NHPI_Halifax_plot.png", plot = NHPI_Halifax_plot,
+       width = 8, height = 6)
+
+
+```
+
+
+***
+
+# Vector number table
+
+```{r}
+
+thedata %>%
+  group_by(VECTOR,
+           GEO,
+           `New housing price indexes`) %>%
+  tally()
+
+
+thedata %>%
+  group_by(VECTOR,
+           GEO,
+           `New housing price indexes`) %>%
+  filter(GEO %in% c("Canada", "British Columbia")) %>%
+  tally()
+
+```
+
+
 
