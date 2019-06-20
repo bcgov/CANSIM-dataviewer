@@ -1,0 +1,164 @@
+---
+title: "International merchandise trade - seasonal adjustment"
+output:
+  html_document:
+    df_print: paged
+---
+<!--
+Copyright 2018-2019 Province of British Columbia
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and limitations under the License.
+-->
+
+
+This set of scripts 
+
+* runs the seaonal adjustment algorithm
+
+* creates summary tables and graphs 
+
+plotting International Merchandise Trade data for Canada and British Columbia collected and reported by Statistics Canada.
+
+
+#### Reference material
+
+See https://bookdown.org/martin_monkman/DataScienceResources_book/quantitativemethods2.html#seasonal-adjustment 
+
+
+#### packages
+
+
+
+```{r}
+
+# tidyverse
+library(tidyverse)
+#library(readr)
+#library("ggplot2") # NOTE: requires ggplot 2.2.0 
+
+library("lubridate")
+
+# monthly data series
+library(zoo)
+# extending ggplot2
+library(scales)
+
+#
+library(cansim)
+
+```
+
+---
+
+### data
+
+
+ARCHIVED DATA SERIES TO 2016-12 
+read the data
+- file 03270046-eng.csv download of CANSIM table 327-0046
+- http://www5.statcan.gc.ca/cansim/a26?lang=eng&retrLang=eng&id=3270046&&pattern=&stByVal=1&p1=1&p2=1&tabMode=dataTable&csid=
+
+
+#### download and save
+
+**data source**
+
+International merchandise trade by province, commodity, and Principal Trading Partners (x 1,000)
+
+Frequency: Monthly
+
+Table: 12-10-0119-01
+
+Geography: Canada, Province or territory
+
+
+
+https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210011901
+
+
+
+
+```{r}
+
+table_id = "12-10-0119-01"
+
+
+thedata <- get_cansim(table_id)
+thedata <- thedata %>%
+    mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
+
+get_cansim_table_overview(table_id)
+
+
+thedata
+
+
+```
+
+
+
+
+#### data wrangling
+
+
+geography list
+
+* note: need stringr to allow filtering of `GeoUID`by 2-digit code (e.g., BC = 59)
+
+```{r}
+
+unique(thedata$GEO)
+unique(thedata$Trade)
+
+
+thedata %>%
+#  filter(GeoUID == ) %>%
+  group_by(GEO, GeoUID) %>%
+  tally()
+
+```
+
+
+
+
+
+```{r}
+
+#startdate <- as.Date("2007-01-01")
+
+
+# filter to have BC and Canada
+thedata_long <- thedata %>%
+#  filter(REF_DATE >= startdate) %>%
+  filter(GEO %in% c("British Columbia", "Canada"), 
+         `Trade` == "Domestic export",
+         `Principal trading partners` %in% c("All countries", "United States"))
+
+thedata_long
+
+CC_list <- c("[C11]", "[C12]", "[C13]", "[C14]",
+             "[C15]", "[C16]", "[C17]", "[C18]",
+             "[C19]", "[C21]", "[C22]", "[C23]")
+
+
+thedata_long <- thedata_long %>%
+  filter(`Classification Code for North American Product Classification System (NAPCS)` %in% CC_list)
+
+unique(thedata_long$`Classification Code for North American Product Classification System (NAPCS)`)
+
+thedata_long %>%
+  filter(REF_DATE == "2019-01-01")
+
+
+
+```
+
+
