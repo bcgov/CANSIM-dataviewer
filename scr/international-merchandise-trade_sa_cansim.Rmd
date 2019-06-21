@@ -43,7 +43,7 @@ See https://bookdown.org/martin_monkman/DataScienceResources_book/quantitativeme
 library(tidyverse)
 #library(readr)
 #library("ggplot2") # NOTE: requires ggplot 2.2.0 
-#library("lubridate")
+library("lubridate")
 
 # extending ggplot2
 library(scales)
@@ -103,6 +103,15 @@ get_cansim_table_overview(table_id)
 
 thedata
 
+feather::write_feather(thedata, "int_trade.feather")
+
+```
+
+
+
+```{r}
+
+thedata <- feather::read_feather("int_trade.feather")
 
 ```
 
@@ -200,4 +209,45 @@ thedata %>%
 
 Need to define values as time series
 
+```{r}
+
+data_vec <- thedata_CANBC_exp %>%
+  filter(GEO == "British Columbia", 
+         `Trade` == "Domestic export",
+         `Principal trading partners` == "All countries",
+         `North American Product Classification System (NAPCS)` == "Total of all merchandise") %>%
+  pull(VALUE) 
+
+```
+
+
+
+```{r}
+
+# set vector as time series
+
+data_vec.ts <- ts(data_vec, start = c(1997, 1), frequency = 12)
+
+plot(data_vec.ts)
+
+print(data_vec.ts)
+
+```
+
+
+http://www.seasonal.website/seasonal.html
+
+```{r}
+
+# seasonal adjustment 
+
+m <- seas(data_vec.ts)
+
+summary(m)
+
+plot(m)
+
+series(m, "b1")
+
+```
 
