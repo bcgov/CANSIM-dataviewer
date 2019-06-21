@@ -155,7 +155,7 @@ thedata_components <- thedata_CANBC_exp %>%
 unique(thedata_components$`Classification Code for North American Product Classification System (NAPCS)`)
 
 thedata_components_singlemonth <- thedata_components %>%
-  filter(REF_DATE == "2019-01-01")
+  filter(REF_DATE == "2019-04-01")
 
 
 thedata_components_singlemonth
@@ -183,11 +183,13 @@ thedata %>%
   filter(GEO %in% c("British Columbia", "Canada"), 
          `Trade` == "Domestic export",
          `Principal trading partners` %in% c("All countries", "United States"),
-         REF_DATE == "2019-01-01",
+         REF_DATE == "2019-04-01",
          `North American Product Classification System (NAPCS)` == "Total of all merchandise") %>%
   select(REF_DATE, GEO, `Principal trading partners`, VALUE)
 
 
 ```
+
+(check B.C. against https://www.bcstats.gov.bc.ca/Files/049a978c-7975-40db-9463-31ce7fde2275/ExportsData1512.xls -- works!)
 
 
