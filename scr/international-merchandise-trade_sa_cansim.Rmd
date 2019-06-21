@@ -136,27 +136,56 @@ thedata %>%
 
 
 # filter to have BC and Canada
-thedata_long <- thedata %>%
+thedata_CANBC_exp <- thedata %>%
 #  filter(REF_DATE >= startdate) %>%
   filter(GEO %in% c("British Columbia", "Canada"), 
          `Trade` == "Domestic export",
          `Principal trading partners` %in% c("All countries", "United States"))
 
-thedata_long
+thedata_CANBC_exp
 
 CC_list <- c("[C11]", "[C12]", "[C13]", "[C14]",
              "[C15]", "[C16]", "[C17]", "[C18]",
              "[C19]", "[C21]", "[C22]", "[C23]")
 
 
-thedata_long <- thedata_long %>%
+thedata_components <- thedata_CANBC_exp %>%
   filter(`Classification Code for North American Product Classification System (NAPCS)` %in% CC_list)
 
-unique(thedata_long$`Classification Code for North American Product Classification System (NAPCS)`)
+unique(thedata_components$`Classification Code for North American Product Classification System (NAPCS)`)
 
-thedata_long %>%
+thedata_components_singlemonth <- thedata_components %>%
   filter(REF_DATE == "2019-01-01")
 
+
+thedata_components_singlemonth
+
+```
+
+
+#### data check
+
+Do the components sum to the total?
+
+```{r}
+
+# components
+
+thedata_components_singlemonth %>%
+  group_by(REF_DATE, GEO, `Principal trading partners`) %>%
+  summarise(month_total = sum(VALUE))
+
+
+# total
+
+thedata %>%
+#  filter(REF_DATE >= startdate) %>%
+  filter(GEO %in% c("British Columbia", "Canada"), 
+         `Trade` == "Domestic export",
+         `Principal trading partners` %in% c("All countries", "United States"),
+         REF_DATE == "2019-01-01",
+         `North American Product Classification System (NAPCS)` == "Total of all merchandise") %>%
+  select(REF_DATE, GEO, `Principal trading partners`, VALUE)
 
 
 ```
