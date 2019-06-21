@@ -43,16 +43,19 @@ See https://bookdown.org/martin_monkman/DataScienceResources_book/quantitativeme
 library(tidyverse)
 #library(readr)
 #library("ggplot2") # NOTE: requires ggplot 2.2.0 
+#library("lubridate")
 
-library("lubridate")
-
-# monthly data series
-library(zoo)
 # extending ggplot2
 library(scales)
 
+# monthly data series
+#library(zoo)
+
 #
 library(cansim)
+
+# seasonal adjustment
+library(seasonal)
 
 ```
 
@@ -191,5 +194,10 @@ thedata %>%
 ```
 
 (check B.C. against https://www.bcstats.gov.bc.ca/Files/049a978c-7975-40db-9463-31ce7fde2275/ExportsData1512.xls -- works!)
+
+
+## Seasonal adjustment
+
+Need to define values as time series
 
 
