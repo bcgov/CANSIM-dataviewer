@@ -45,6 +45,7 @@ library(scales)
 #
 library(cansim)
 
+library(feather)
 ```
 
 ---
@@ -421,4 +422,39 @@ thedata %>%
 ```
 
 
+## Data table - example
+
+
+```{r}
+
+startdate <- as.Date("2007-01-01")
+
+
+# filter to have BC and Canada
+thedata_table <- thedata %>%
+  filter(REF_DATE >= startdate) %>%
+  filter(GEO == "British Columbia", 
+         `New housing price indexes` == "Total (house and land)")
+
+thedata_table
+
+write_feather(thedata_table, "thedata_table.feather")
+
+```
+
+
+```{r}
+
+read_feather("thedata_table.feather")
+
+NHPI_table <- thedata_table %>%
+  mutate(year = year(REF_DATE),
+         month = month(REF_DATE, label = TRUE)) %>%
+  select(year, month, VALUE) %>%
+  spread(month, VALUE)
+
+NHPI_table
+
+
+```
 
