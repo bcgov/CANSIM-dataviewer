@@ -458,3 +458,61 @@ NHPI_table
 
 ```
 
+
+
+```{r}
+
+# how to add annual average
+# Julie's genius solution
+
+NHPI_table2 <- NHPI_table %>%
+  mutate(annual_avg = rowMeans(NHPI_table[-1], na.rm = TRUE))
+
+NHPI_table2
+
+```
+
+
+```{r}
+
+NHPI_table %>%
+  select(year, Jan:Dec)
+
+
+# works for first four columns
+NHPI_table %>%
+  rowwise() %>%
+  mutate(annual_avg = (mean(Jan:Apr)))
+
+# `drop_na() drops the rows with NA values
+NHPI_table %>%
+  drop_na() %>%
+  rowwise() %>%
+  mutate(annual_avg = (mean(Jan:Dec)))
+
+
+# throws an error
+NHPI_table %>%
+  rowwise() %>%
+  mutate(annual_avg = (mean(Jan:Dec, na.rm = TRUE)))
+
+
+```
+
+```{r}
+
+# Stephanie's genius solution
+
+NHPI_table3 <- thedata_table %>%
+  mutate(year = year(REF_DATE),
+         month = month(REF_DATE, label = TRUE)) %>%
+  select(year, month, VALUE) %>%
+  group_by(year) %>%
+  mutate(annual_avg = mean(VALUE, na.rm = TRUE)) %>%
+  spread(month, VALUE)
+
+NHPI_table3
+
+
+```
+
