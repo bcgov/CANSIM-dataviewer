@@ -1,0 +1,191 @@
+<!--
+Copyright 2018 Province of British Columbia
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and limitations under the License.
+-->
+
+---
+title: "SEPH - construction"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+
+```
+
+# Survey of Employment, Payrolls and Hours
+
+
+This set of scripts creates summary tables and graphs plotting the monthly SEPH data collected and reported by Statistics Canada.
+
+#### packages
+
+```{r, packages}
+
+# tidyverse
+library(tidyverse)
+library(stringr)
+library(glue)
+
+# monthly data series
+library(lubridate)
+# extending ggplot2
+library(scales)
+
+# cansim
+#install.packages("devtools")
+#devtools::install_github("mountainmath/cansim")
+library(cansim)
+
+# utilities
+library(brickr)
+library(here)
+library(janitor)
+
+### ---
+# bonus function for "not in" (opposite of %in%)
+# https://stackoverflow.com/a/50255505/4170032
+`%!in%` <- purrr::compose(`!`, `%in%`)
+
+```
+
+---
+
+## Background
+
+
+The Daily, 2019-07-25: Payroll employment, earnings and hours, May 2019
+https://www150.statcan.gc.ca/n1/daily-quotidien/190725/dq190725a-eng.htm
+
+The Daily, 2019-01-30 (November 2018)
+https://www150.statcan.gc.ca/n1/daily-quotidien/190130/dq190130a-eng.htm 
+
+The Daily, 2018-12-20 (October 2018)
+
+* https://www150.statcan.gc.ca/n1/daily-quotidien/181220/dq181220b-eng.htm
+
+The Daily, 2018-11-29
+
+* https://www150.statcan.gc.ca/n1/daily-quotidien/181129/dq181129c-eng.htm
+
+The Daily, 2018-10-25
+
+* https://www150.statcan.gc.ca/n1/daily-quotidien/181025/dq181025a-eng.htm
+
+
+**Important:** "In general, changes in weekly earnings reflect a number of factors, including wage growth; changes in the composition of employment by industry, occupation and level of job experience; and average hours worked per week."
+
+
+
+## -- Data
+
+There are multiple (13) data tables associated with the SEPH:
+https://www150.statcan.gc.ca/n1/daily-quotidien/181025/dq181025a-cansim-eng.htm
+
+The principal tables used here are:
+
+* Employment and average weekly earnings (including overtime) for all employees by province and territory, monthly, seasonally adjusted
+
+  - Table: 14-10-0223-01 (formerly CANSIM  281-0063)
+  
+  - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410022301
+
+
+* Average weekly hours for employees paid by the hour, by industry, monthly, unadjusted for seasonality
+
+  - Table: 14-10-0255-01 (formerly CANSIM  281-0032)
+
+  - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410025501
+  
+
+
+### Read the data
+
+
+**NOTE:**
+
+This script uses the [R package {cansim}](https://github.com/mountainMath/cansim)
+
+
+```{r data_read}
+
+#data_14_10_0223_01 <- get_cansim("14-10-0223-01", refresh = TRUE)
+data_14_10_0223_01 <- get_cansim("14-10-0223-01")
+
+```
+
+
+```{r}
+
+LFS_data <- data_14_10_0223_01 %>%
+  janitor::clean_names() %>%
+  mutate(ref_date = ymd(ref_date, truncated = 2)) %>%
+  filter(geo == "British Columbia",
+         estimate == "Employment for all employees",
+         north_american_industry_classification_system_naics == "Construction [23]")
+
+LFS_data <- LFS_data %>%
+  filter(month(ref_date) == 5,
+         year(ref_date) > 2009)
+
+LFS_data
+
+ls.str(LFS_data)
+
+```
+
+## plot
+
+```{r}
+
+LFS_plot <- ggplot(LFS_data) +
+  aes(x=ref_date, y=value) + 
+  geom_brick_col() 
+#  scale_fill_brick() +
+#  coord_brick() +
+#  theme_brick()
+
+LFS_plot
+
+```
+
+plot, with formatting
+
+```{r}
+
+LFS_plot +
+  labs(title = "Employment in B.C.'s construction industry continues to grow",
+       subtitle = "The month of May, 2010-2019",
+       caption = "Statistics Canada.  Table  14-10-0201-01   Employment by industry, monthly, unadjusted for seasonality") +
+  xlab(element_blank()) +
+  ylab("number of persons") +
+  scale_y_continuous(labels = comma)
+
+
+LFS_plot +
+  labs(title = "Employment in B.C.'s construction industry continues to grow",
+       subtitle = "The month of May, 2010-2019",
+       caption = "Statistics Canada.  Table  14-10-0201-01   Employment by industry, monthly, unadjusted for seasonality") +
+  xlab(element_blank()) +
+  ylab("number of persons") +
+  scale_y_continuous(labels = comma)
+
+```
+
+
+
+-30-
