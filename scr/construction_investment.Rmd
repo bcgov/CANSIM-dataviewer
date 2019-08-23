@@ -27,7 +27,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE)
 
 ```
 
-# Survey of Employment, Payrolls and Hours
+# Investment in Building Construction
 
 
 This set of scripts creates summary tables and graphs plotting the monthly SEPH data collected and reported by Statistics Canada.
@@ -112,6 +112,8 @@ ls.str(data_coninv)
 
 * investment_value
 
+* type_of_work
+
 * type_of_structure
 
 ```{r}
@@ -120,6 +122,8 @@ data_coninv_bc <- data_coninv %>%
   filter(geo == "British Columbia")
 
 unique(data_coninv$investment_value)
+
+unique(data_coninv$type_of_work)
 
 ```
 
@@ -131,9 +135,43 @@ last_date <- max(data_coninv_bc$ref_date)
 
 data_coninv_bc <- data_coninv_bc %>%
   filter(ref_date == last_date,
-         investment_value == "Unadjusted - constant")
+         investment_value == "Unadjusted - current",
+         type_of_work == "Types of work, total")
 
 data_coninv_bc
+
+unique(data_coninv_bc$type_of_structure)
+
+data_summary <-
+data_coninv_bc %>%
+  mutate(type_grp = case_when(
+    type_of_structure == "Single dwelling building total" ~ "Residential",
+    type_of_structure == "Multiple dwelling building total" ~ "Residential",
+    type_of_structure == "Total industrial" ~ "Non-residential",
+    type_of_structure == "Total commercial" ~ "Non-residential",
+    type_of_structure == "Total institutional and governmental" ~ "Non-residential",
+    TRUE ~ NA_character_
+  )) %>%
+  mutate(type_grp = as_factor(type_grp),
+         type_of_structure = as_factor(type_of_structure))
+
+data_summary$type_of_structure <-
+data_summary$type_of_structure %>%
+  fct_recode(
+    "Single dwelling building" = "Single dwelling building total",
+    "Multiple dwelling building" = "Multiple dwelling building total",
+    "Industrial" = "Total industrial",
+    "Commercial" = "Total commercial",
+    "Institutional & governmental" = "Total institutional and governmental"
+  )
+
+data_chart <- data_summary %>%
+  filter(!is.na(type_grp)) %>%
+  group_by(type_grp, type_of_structure) %>%
+  summarise(valuesum = sum(value, na.rm = TRUE)) %>%
+  arrange(valuesum)
+
+data_chart
 
 ```
 
@@ -141,11 +179,40 @@ data_coninv_bc
 
 ```{r}
 
-coninv_plot <- ggplot(data_coninv_bc) +
-  aes(x=type_of_structure, y=value) + 
+coninv_plot <- ggplot(data_chart) +
+  aes(x=type_of_structure, y=valuesum) + 
   geom_brick_col(two_knob = FALSE) +
   coord_brick_flip() 
 #  scale_fill_brick() 
+#  theme_brick()
+
+coninv_plot
+
+```
+
+```{r}
+
+coninv_plot <- ggplot(data_chart) +
+  aes(x=type_of_structure, y=valuesum) + 
+  geom_brick_col(two_knob = FALSE) +
+  coord_brick_flip() +
+  facet_grid(rows = vars(type_grp))
+#  scale_fill_brick() 
+#  theme_brick()
+
+coninv_plot
+
+```
+
+
+
+```{r}
+
+coninv_plot <- ggplot(data_chart) +
+  aes(x=reorder(type_of_structure, valuesum), y=valuesum) + 
+  geom_brick_col(aes(fill = type_grp), two_knob = FALSE) +
+  scale_fill_brick() +
+  coord_brick_flip() 
 #  theme_brick()
 
 coninv_plot
@@ -157,74 +224,24 @@ plot, with formatting
 ```{r}
 
 coninv_plot +
-  labs(title = "Employment in B.C.'s construction industry continues to grow",
-       subtitle = "The month of May, 2010-2019",
-       caption = "Statistics Canada.  Table  14-10-0201-01   Employment by industry, monthly, unadjusted for seasonality") +
+  labs(title = "Investment in Building Construction",
+       subtitle = "British Columbia, June 2019",
+       caption = "Source: Statistics Canada. Table 34-10-0175-01; Investment in Building Construction") +
   xlab(element_blank()) +
-  ylab("number of persons") +
-  scale_y_continuous(labels = comma)
-
-```
-
-```{r}
-
-coninv_plot +
-  labs(title = "Employment in B.C.'s construction industry continues to grow",
-       subtitle = "The month of May, 2010-2019",
-       caption = "Statistics Canada.  Table  14-10-0201-01   Employment by industry, monthly, unadjusted for seasonality") +
-  xlab("year") +
-  ylab("number of persons") +
+  ylab("$ (unadjusted, current)") +
   scale_y_continuous(labels = comma) +
-  scale_x_date(date_labels = "%Y",
-               date_breaks = "1 year", 
-               minor_breaks = NULL) 
-#  theme(panel.grid.minor.x = element_blank())
+  # theme
+  theme(legend.title = element_blank(),
+        legend.position = "bottom")
 
 ```
 
 
-```{r}
-
-
-
-coninv_plot +
-  labs(title = "Employment in B.C.'s construction industry continues to grow",
-       subtitle = "The number of persons employed during the month of May, 2010-2019",
-       caption = "Source: Statistics Canada. Table 14-10-0201-01; Employment by industry, monthly, unadjusted for seasonality") +
-  xlab("year") +
-  ylab("number of persons") +
-  scale_y_continuous(labels = comma) +
-  scale_x_date(date_labels = "%Y",
-               date_breaks = "1 year", 
-               minor_breaks = NULL) 
-               
-
-
-```
 
 
 ```{r}
 
-data_coninv <- data_coninv %>%
-  mutate(year_ref = as.factor(year(ref_date)))
-
-coninv_plot <- ggplot(data_coninv) +
-  aes(x=year_ref, y=value) + 
-  geom_brick_col() 
-
-coninv_plot
-
-
-coninv_plot +
-  labs(title = "Employment in B.C.'s construction industry continues to grow",
-       subtitle = "The number of persons employed during the month of May, 2010-2019",
-       caption = "Source: Statistics Canada. Table 14-10-0201-01; Employment by industry, monthly, unadjusted for seasonality") +
-  xlab("year") +
-  ylab("number of persons") +
-  scale_y_continuous(labels = comma)
-               
-
-ggsave(filename = "SEPH_construction_plot.png", 
+ggsave(filename = "construction_investment_plot.png", 
        width = 8, height = 6)
 
 
