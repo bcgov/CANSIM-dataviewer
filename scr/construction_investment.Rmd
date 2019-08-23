@@ -94,6 +94,11 @@ This script uses the [R package {cansim}](https://github.com/mountainMath/cansim
 
 #data_34_10_0175 <- get_cansim("34-10-0175-01")
 
+# {cansim} giving me grief today...time to investigate and perhaps file an issue
+# data downloaded from https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3410017501 
+# (see "Download options" button on right)
+# unzipped files saved in project folder, in sub-folder \data\
+
 data_34_10_0175 <- read_csv(here("data", "34100175.csv"))
 
 data_coninv <- data_34_10_0175 %>%
