@@ -196,6 +196,8 @@ LFS_plot +
 
 ```{r}
 
+
+
 LFS_plot +
   labs(title = "Employment in B.C.'s construction industry continues to grow",
        subtitle = "The number of persons employed during the month of May, 2010-2019",
@@ -208,10 +210,37 @@ LFS_plot +
                minor_breaks = NULL) 
                
 
+
+```
+
+
+```{r}
+
+LFS_data <- LFS_data %>%
+  mutate(year_ref = as.factor(year(ref_date)))
+
+LFS_plot <- ggplot(LFS_data) +
+  aes(x=year_ref, y=value) + 
+  geom_brick_col() 
+
+LFS_plot
+
+
+LFS_plot +
+  labs(title = "Employment in B.C.'s construction industry continues to grow",
+       subtitle = "The number of persons employed during the month of May, 2010-2019",
+       caption = "Source: Statistics Canada. Table 14-10-0201-01; Employment by industry, monthly, unadjusted for seasonality") +
+  xlab("year") +
+  ylab("number of persons") +
+  scale_y_continuous(labels = comma)
+               
+
 ggsave(filename = "SEPH_construction_plot.png", 
        width = 8, height = 6)
 
 
+
 ```
+
 
 -30-
