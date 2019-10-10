@@ -49,6 +49,10 @@ library("scales")
 #devtools::install_github("mountainmath/cansim")
 library(cansim)
 
+# more utilities
+library(here)
+library(janitor)
+
 
 # plot theme
 LFStheme <- 
@@ -79,13 +83,13 @@ Request from media (unknown) about labour force participation of women age 20-44
 
 **Data source**
 
-* Labour force characteristics by sex and detailed age group, monthly, unadjusted for seasonality (x 1,000)
+* Labour force labour_force_characteristics by sex and detailed age group, monthly, unadjusted for seasonality (x 1,000)
 
   - Table: 14-10-0017-01 (formerly CANSIM Table 282-0001)
   
   - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410001701
 
-* Labour force characteristics by sex and detailed age group, annual (x 1,000)
+* Labour force labour_force_characteristics by sex and detailed age group, annual (x 1,000)
 
   - Table: 14-10-0018-01 (formerly CANSIM  282-0002)
 
@@ -105,23 +109,28 @@ Request from media (unknown) about labour force participation of women age 20-44
 data_14_10_0017_01 <- get_cansim("14-10-0017-01")
 
 data_14_10_0017_01 <- data_14_10_0017_01 %>%
-    mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
+  clean_names()
+
+data_14_10_0017_01 <- data_14_10_0017_01 %>%
+    mutate(ref_date = ymd(ref_date, truncated = 2)) 
 
 # read the data - annual
 data_14_10_0018_01 <- get_cansim("14-10-0018-01")
 
 #data_14_10_0018_01 <- data_14_10_0018_01 %>%
-#    mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
+#    mutate(ref_date = ymd(ref_date, truncated = 2)) 
 
 
-thedata <- data_14_10_0018_01
+thedata <- data_14_10_0018_01 %>%
+  clean_names()
+
 
 ls.str(thedata)
 
-unique(thedata$`Labour force characteristics`)
+unique(thedata$labour_force_characteristics)
 
 thedata %>%
-  mutate(GEO = as_factor(GEO))
+  mutate(geo = as_factor(geo))
 
 ```
 
@@ -131,7 +140,7 @@ thedata %>%
 ### Participation rate by age and sex
 
 
-#### B.C. and Canada, Age == 25-44, Sex = Female
+#### B.C. and Canada, Age == 25-44, sex = Female
 
 
 
@@ -143,18 +152,16 @@ prov.list <- c("British Columbia", "Canada")
 
 # filter to have Canada
 thedata_long <- thedata %>%
-#  filter(REF_DATE >= startdate) %>%
-#  filter(GEO == "Canada",
-  filter(GEO %in% prov.list,
-         `Age group` == "25 to 44 years",
-         Sex == "Females",
-         `Labour force characteristics` == "Participation rate")
+#  filter(ref_date >= startdate) %>%
+#  filter(geo == "Canada",
+  filter(geo %in% prov.list,
+         age_group == "25 to 44 years",
+         sex == "Females",
+         labour_force_characteristics == "Participation rate")
 
 ### basic
-ggplot(thedata_long, aes(x=REF_DATE, y=VALUE, colour=GEO)) + 
-  geom_point()
 
-dataplot <- ggplot(thedata_long, aes(x=REF_DATE, y=VALUE, group=GEO)) + 
+dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, group=geo)) + 
   geom_line() 
 
 dataplot
@@ -191,7 +198,7 @@ dataplot2
 ```
 
 
-For B.C. in `r max(thedata$REF_DATE)`, it was (pull value). Nationally, it was (pull value).
+For B.C. in `r max(thedata$ref_date)`, it was (pull value). Nationally, it was (pull value).
 
 The participation rate rose rapidly in the mid-1970s through to about 1990, since then it has been rising more slowly. When Statistics Canada started the  Labour Force Survey in 1976, nationally the labour force participation rate for women aged 25-44 was 54%; it gained 10 percentage points over the next five years to reach 65.2% in 1981, and another 10 percentage points by 1988 (75.3%). The rate of increase since then has been much more modest.
 
@@ -206,7 +213,7 @@ dataplot2
 
 ***
 
-#### B.C. and Canada, Age == 20-44, Sex = Female and Male
+#### B.C. and Canada, Age == 20-44, sex = Female and Male
 
 ```{r include=FALSE}
 
@@ -216,16 +223,35 @@ prov.list <- c("British Columbia", "Canada")
 sex.list <- c("Females", "Males")
 
 # filters
-thedata_long <- thedata %>%
-  filter(GEO %in% prov.list,
-         AGEGROUP == "25 to 44 years",
-         SEX %in% sex.list,
-         CHARACTERISTICS == "Participation rate (percentage)")
+thedata_long <- 
+  thedata %>%
+  filter(geo %in% prov.list,
+         age_group == "25 to 44 years",
+         sex %in% sex.list,
+         labour_force_characteristics == "Participation rate")
+
+thedata_long
 
 ### basic plot
-dataplot <- ggplot(thedata_long, aes(x=REF_DATE, y=VALUE, colour=SEX)) + 
+dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value)) + 
+  geom_point()
+
+dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, group=sex)) + 
+  geom_line() 
+
+dataplot
+
+### basic plot
+dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, colour=sex)) + 
   geom_line(size=1.5) +
-  facet_grid(. ~ GEO)
+  facet_grid(. ~ geo)
+
+dataplot
+
+```
+
+
+```{r}
 
 # with formatting applied
 
@@ -240,6 +266,8 @@ dataplot2 <- dataplot2 +
        subtitle = "1976 - 2017 (annual)",
        caption = "Source: Statistics Canada (Labour Force Survey, CANSIM table 282-0002)", 
        x = NULL, y = "percentage")
+
+dataplot2
 
 # save the plot as a png file
 png("plot_labforpart_BCCan_sex_25-44.png", width=1024, height=768, res=120)
@@ -275,13 +303,13 @@ prov.list <- c("British Columbia", "Quebec", "Alberta")
 
 # filters
 thedata_long <- thedata %>%
-  filter(GEO %in% prov.list,
-         AGEGROUP == "25 to 44 years",
-         SEX == "Females",
-         CHARACTERISTICS == "Participation rate (percentage)")
+  filter(geo %in% prov.list,
+         age_group == "25 to 44 years",
+         sex == "Females",
+         labour_force_characteristics == "Participation rate (percentage)")
 
 ### basic plot
-dataplot <- ggplot(thedata_long, aes(x=REF_DATE, y=VALUE, colour=GEO)) + 
+dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, colour=geo)) + 
   geom_line(size=1.5) 
 
 dataplot2 <- dataplot +
@@ -351,7 +379,7 @@ LFS_family <- read_csv("../data/02820211-eng.csv")
 
 LFS_family <- LFS_family %>%
   select(-(Vector:Coordinate)) %>%
-  mutate(GEO = as.factor(GEO),
+  mutate(geo = as.factor(geo),
          FAMILYCOMP = as.factor(FAMILYCOMP),
          FAMILYTYPE = as.factor(FAMILYTYPE))
 
@@ -375,14 +403,14 @@ prov.list <- c("British Columbia", "Canada")
 
 # filter to have BC and Canada
 thedata_long <- thedata %>%
-  filter(GEO %in% prov.list, 
+  filter(geo %in% prov.list, 
          FAMILYTYPE == "Families with female reference person/spouse",
          FAMILYCOMP == "Total families",
-         CHARACTERISTICS == "Participation rate (percentage)")
+         labour_force_characteristics == "Participation rate (percentage)")
 
 ### basic
 # with formatting applied
-dataplot <- ggplot(thedata_long, aes(x=REF_DATE, y=VALUE, colour=GEO)) + 
+dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, colour=geo)) + 
   geom_line(size=1.5) 
 
 dataplot2 <- dataplot +
@@ -424,16 +452,16 @@ family.comp.list <- c("Youngest child less than 3 years",
 
 # filters 
 thedata_long <- thedata %>%
-  filter(REF_DATE >= startdate) %>%
-  filter(GEO == "Canada", 
+  filter(ref_date >= startdate) %>%
+  filter(geo == "Canada", 
          FAMILYTYPE == "Families with female reference person/spouse",
          FAMILYCOMP %in% family.comp.list,
-         CHARACTERISTICS == "Participation rate (percentage)")
+         labour_force_characteristics == "Participation rate (percentage)")
 
 # PLOT!
 # basic
 # with formatting applied
-dataplot <- ggplot(thedata_long, aes(x=REF_DATE, y=VALUE, colour=FAMILYCOMP)) + 
+dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, colour=FAMILYCOMP)) + 
   geom_line(size=1.5) 
 
 dataplot2 <- dataplot +
@@ -442,7 +470,7 @@ dataplot2 <- dataplot +
                       breaks=c("Youngest child less than 3 years",
                          "Youngest child 3 to 5 years",
                          "Youngest child 6 to 15 years"),
-                      VALUEs=c("#325A80", "#CCB550", "#000000")) +
+                      values=c("#325A80", "#CCB550", "#000000")) +
   LFStheme
 
 # add titles / X-Y axis labels / caption
@@ -486,16 +514,16 @@ family.comp.list <- c("Youngest child less than 3 years",
 
 # filter to have BC
 thedata_long <- thedata %>%
-  filter(REF_DATE >= startdate) %>%
-  filter(GEO == "British Columbia", 
+  filter(ref_date >= startdate) %>%
+  filter(geo == "British Columbia", 
          FAMILYTYPE == "Families with female reference person/spouse",
          FAMILYCOMP %in% family.comp.list,
-         CHARACTERISTICS == "Participation rate (percentage)")
+         labour_force_characteristics == "Participation rate (percentage)")
 
 # PLOT!
 # basic
 # with formatting applied
-dataplot <- ggplot(thedata_long, aes(x=REF_DATE, y=VALUE, colour=FAMILYCOMP)) + 
+dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, colour=FAMILYCOMP)) + 
   geom_line(size=1.5) 
 
 
@@ -505,7 +533,7 @@ dataplot2 <- dataplot +
                       breaks=c("Youngest child less than 3 years",
                          "Youngest child 3 to 5 years",
                          "Youngest child 6 to 15 years"),
-                      VALUEs=c("#325A80", "#CCB550", "#000000")) +
+                      values=c("#325A80", "#CCB550", "#000000")) +
   LFStheme
 
 # add titles / X-Y axis labels / caption
@@ -552,16 +580,16 @@ prov.list <- c("British Columbia", "Quebec")
 
 # filters 
 thedata_long <- thedata %>%
-  filter(REF_DATE >= startdate) %>%
-  filter(GEO %in% prov.list, 
+  filter(ref_date >= startdate) %>%
+  filter(geo %in% prov.list, 
          FAMILYTYPE == "Families with female reference person/spouse",
          FAMILYCOMP %in% family.comp.list,
-         CHARACTERISTICS == "Participation rate (percentage)")
+         labour_force_characteristics == "Participation rate (percentage)")
 
 # FACET PLOT!
 #
 # horizontal
-dataplot <- ggplot(thedata_long, aes(x=REF_DATE, y=VALUE, colour=GEO)) + 
+dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, colour=geo)) + 
   geom_line(size=1.5) +
   facet_grid(. ~ FAMILYCOMP)
 
@@ -570,7 +598,7 @@ dataplot2 <- dataplot +
   scale_colour_manual(name=NULL,
                       breaks=c("British Columbia",
                          "Quebec"),
-                      VALUEs=c("#325A80", "#CCB550")) +
+                      values=c("#325A80", "#CCB550")) +
   LFStheme +
   theme(
     legend.position=("bottom"), 
