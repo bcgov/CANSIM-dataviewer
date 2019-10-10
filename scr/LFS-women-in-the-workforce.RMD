@@ -62,11 +62,11 @@ LFStheme <-
     plot.title = element_text(face="bold"),
     legend.position=c(1,0), 
     legend.justification=c(1,0),
-    legend.title = element_text(size=12),
-    legend.text = element_text(size=11),
+    legend.title = element_text(size=11),
+    legend.text = element_text(size=10),
     axis.line = element_line(colour="black"),
     axis.title = element_text(size=12),
-    axis.text = element_text(size=12)
+    axis.text = element_text(size=10)
   )
 
 
@@ -632,7 +632,7 @@ dataplot2 <- dataplot +
 
 # add titles / X-Y axis labels / caption
 dataplot2 <- dataplot2 +
-  labs(title = "Women with children in the workforce, British Columbia & Quebec",
+  labs(title = "Women with children in the workforce, B.C. & Quebec",
        subtitle = "1976 - 2018 (annual)",
        caption = "Source: Statistics Canada (Labour Force Survey, CANSIM table 282-0211)", 
        x = NULL, y = "percentage")
@@ -644,6 +644,8 @@ dataplot2 <- dataplot2 +
 #dev.off()
 
 dataplot2
+
+ggsave("plot_labforpart_BCQue_women-X-child-age.png", width=6, height=4, dpi=300)
 
 ```
 
