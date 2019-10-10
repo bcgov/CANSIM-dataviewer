@@ -109,9 +109,6 @@ Request from media (unknown) about labour force participation of women age 20-44
 data_14_10_0017_01 <- get_cansim("14-10-0017-01")
 
 data_14_10_0017_01 <- data_14_10_0017_01 %>%
-  clean_names()
-
-data_14_10_0017_01 <- data_14_10_0017_01 %>%
     mutate(ref_date = ymd(ref_date, truncated = 2)) 
 
 # read the data - annual
@@ -124,13 +121,20 @@ data_14_10_0018_01 <- get_cansim("14-10-0018-01")
 thedata <- data_14_10_0018_01 %>%
   clean_names()
 
-
-ls.str(thedata)
-
 unique(thedata$labour_force_characteristics)
 
+thedata <-
 thedata %>%
-  mutate(geo = as_factor(geo))
+  mutate(geo = as_factor(geo),
+         sex = as_factor(sex),
+         labour_force_characteristics = as_factor(labour_force_characteristics),
+         age_group = as_factor(age_group),
+         ref_date = as.integer(ref_date)
+  )
+
+
+thedata
+
 
 ```
 
@@ -160,11 +164,17 @@ thedata_long <- thedata %>%
          labour_force_characteristics == "Participation rate")
 
 ### basic
-
 dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, group=geo)) + 
   geom_line() 
 
 dataplot
+
+dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, colour=geo)) + 
+  geom_line() 
+
+dataplot
+
+
 
 ```
 
@@ -180,7 +190,7 @@ dataplot2
 
 # add titles / X-Y axis labels / caption
 dataplot2 <- dataplot2 +
-  scale_x_discrete(breaks = c(1976, seq(1980, 2015, by = 5), 2018)) +
+  scale_x_continuous(breaks = c(1976, seq(1980, 2015, by = 5), 2020)) +
 #  theme(panel.grid.minor.x = c(1985, 1995, 2005, 2015)) +
   labs(title = "Labour force participation, females age 25-44, British Columbia & Canada",
        subtitle = "1976 - 2018 (annual)",
@@ -306,19 +316,19 @@ thedata_long <- thedata %>%
   filter(geo %in% prov.list,
          age_group == "25 to 44 years",
          sex == "Females",
-         labour_force_characteristics == "Participation rate (percentage)")
+         labour_force_characteristics == "Participation rate")
 
 ### basic plot
 dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, colour=geo)) + 
   geom_line(size=1.5) 
 
 dataplot2 <- dataplot +
-  scale_y_continuous(labels = comma, limits = c(50, 100), breaks = seq(50, 100, 10)) +
+  scale_y_continuous(labels = comma, limits = c(45, 100), breaks = seq(50, 100, 10)) +
   LFStheme
 
 # add titles / X-Y axis labels / caption
 dataplot2 <- dataplot2 +
-  labs(title = "Labour force participation, females age 25-44, British Columbia & other provinces",
+  labs(title = "Labour force participation, females age 25-44",
        subtitle = "1976 - 2017 (annual)",
        caption = "Source: Statistics Canada (Labour Force Survey, CANSIM table 282-0002)", 
        x = NULL, y = "percentage")
@@ -329,10 +339,6 @@ plot(dataplot2)
 dev.off()
 
 
-```
-
-
-```{r echo=FALSE}
 
 thedata_long
 
