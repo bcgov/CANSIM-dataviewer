@@ -361,7 +361,11 @@ On 2016-11-18, [Dr. Tammy Schirle](https://legacy.wlu.ca/homepage.php?grp_id=180
 
 **Data source**
 
-Source: Statistics Canada, Labour Force Survey, Labour force survey estimates (LFS), by family type and family age composition ([CANSIM Table 282-0211](http://www5.statcan.gc.ca/cansim/a26?lang=eng&retrLang=eng&id=2820211&&pattern=&stByVal=1&p1=1&p2=-1&tabMode=dataTable&csid=), downloaded 2018-03-26). Reproduced and distributed on an "as is" basis with the permission of Statistics Canada.
+Source: Statistics Canada, Labour Force Survey, Labour force characteristics by family age composition, annual
+
+Table: 14-10-0120-01 (formerly CANSIM 282-0211)
+
+DOI:   https://doi.org/10.25318/1410012001-eng
 
 [Statistics Canada Open License Agreement](http://www.statcan.gc.ca/eng/reference/licence)
 
@@ -379,22 +383,34 @@ Tyler Cowen, 2016, ["Why is female labor force participation down?"](http://marg
 ***
 
 
+
+### Women with children in the workforce, Canada and British Columbia
+
+
 ```{r include=FALSE}
 
-LFS_family <- read_csv("../data/02820211-eng.csv")
+LFS_family <- get_cansim("14-10-0120-01")
 
 LFS_family <- LFS_family %>%
-  select(-(Vector:Coordinate)) %>%
-  mutate(geo = as.factor(geo),
-         FAMILYCOMP = as.factor(FAMILYCOMP),
-         FAMILYTYPE = as.factor(FAMILYTYPE))
+  clean_names()
 
+ls(LFS_family)
+
+LFS_family <- LFS_family %>%
+  mutate(geo = as_factor(geo),
+         labour_force_characteristics = as_factor(labour_force_characteristics),
+         family_age_composition  = as_factor(family_age_composition ),
+         family_type  = as_factor(family_type ),
+         ref_date = as.integer(ref_date)
+  )
+
+
+levels(LFS_family$labour_force_characteristics)
+levels(LFS_family$family_age_composition)
+levels(LFS_family$family_type)
 
 ```
 
-
-
-### Women with children in the workforce, Canada and British Columbia
 
 
 ```{r include=FALSE}
@@ -410,9 +426,9 @@ prov.list <- c("British Columbia", "Canada")
 # filter to have BC and Canada
 thedata_long <- thedata %>%
   filter(geo %in% prov.list, 
-         FAMILYTYPE == "Families with female reference person/spouse",
-         FAMILYCOMP == "Total families",
-         labour_force_characteristics == "Participation rate (percentage)")
+         family_type == "Families with female reference person/spouse",
+         family_age_composition == "Total families",
+         labour_force_characteristics == "Participation rate")
 
 ### basic
 # with formatting applied
@@ -460,14 +476,14 @@ family.comp.list <- c("Youngest child less than 3 years",
 thedata_long <- thedata %>%
   filter(ref_date >= startdate) %>%
   filter(geo == "Canada", 
-         FAMILYTYPE == "Families with female reference person/spouse",
-         FAMILYCOMP %in% family.comp.list,
-         labour_force_characteristics == "Participation rate (percentage)")
+         family_type == "Families with female reference person/spouse",
+         family_age_composition %in% family.comp.list,
+         labour_force_characteristics == "Participation rate")
 
 # PLOT!
 # basic
 # with formatting applied
-dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, colour=FAMILYCOMP)) + 
+dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, colour=family_age_composition)) + 
   geom_line(size=1.5) 
 
 dataplot2 <- dataplot +
@@ -482,9 +498,11 @@ dataplot2 <- dataplot +
 # add titles / X-Y axis labels / caption
 dataplot2 <- dataplot2 +
   labs(title = "Women with children in the workforce, Canada",
-       subtitle = "1976 - 2017 (annual)",
+       subtitle = "1976 - 2018 (annual)",
        caption = "Source: Statistics Canada (Labour Force Survey, CANSIM table 282-0211)", 
        x = NULL, y = "percentage")
+
+dataplot2
 
 ```
 
@@ -522,14 +540,14 @@ family.comp.list <- c("Youngest child less than 3 years",
 thedata_long <- thedata %>%
   filter(ref_date >= startdate) %>%
   filter(geo == "British Columbia", 
-         FAMILYTYPE == "Families with female reference person/spouse",
-         FAMILYCOMP %in% family.comp.list,
-         labour_force_characteristics == "Participation rate (percentage)")
+         family_type == "Families with female reference person/spouse",
+         family_age_composition %in% family.comp.list,
+         labour_force_characteristics == "Participation rate")
 
 # PLOT!
 # basic
 # with formatting applied
-dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, colour=FAMILYCOMP)) + 
+dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, colour=family_age_composition)) + 
   geom_line(size=1.5) 
 
 
@@ -577,7 +595,7 @@ family.comp.list <- c("Youngest child less than 3 years",
                       "Youngest child 3 to 5 years",
                       "Youngest child 6 to 15 years")
 
-thedata$FAMILYCOMP <- ordered(thedata$FAMILYCOMP, 
+thedata$family_age_composition <- ordered(thedata$family_age_composition, 
                               levels = c("Youngest child less than 3 years",
                                          "Youngest child 3 to 5 years",
                                          "Youngest child 6 to 15 years"))
@@ -588,16 +606,16 @@ prov.list <- c("British Columbia", "Quebec")
 thedata_long <- thedata %>%
   filter(ref_date >= startdate) %>%
   filter(geo %in% prov.list, 
-         FAMILYTYPE == "Families with female reference person/spouse",
-         FAMILYCOMP %in% family.comp.list,
-         labour_force_characteristics == "Participation rate (percentage)")
+         family_type == "Families with female reference person/spouse",
+         family_age_composition %in% family.comp.list,
+         labour_force_characteristics == "Participation rate")
 
 # FACET PLOT!
 #
 # horizontal
 dataplot <- ggplot(thedata_long, aes(x=ref_date, y=value, colour=geo)) + 
   geom_line(size=1.5) +
-  facet_grid(. ~ FAMILYCOMP)
+  facet_grid(. ~ family_age_composition)
 
 dataplot2 <- dataplot +
   scale_y_continuous(labels = comma, limits = c(0, 100), breaks = seq(0, 100, 20)) +
@@ -615,16 +633,17 @@ dataplot2 <- dataplot +
 # add titles / X-Y axis labels / caption
 dataplot2 <- dataplot2 +
   labs(title = "Women with children in the workforce, British Columbia & Quebec",
-       subtitle = "1976 - 2017 (annual)",
+       subtitle = "1976 - 2018 (annual)",
        caption = "Source: Statistics Canada (Labour Force Survey, CANSIM table 282-0211)", 
        x = NULL, y = "percentage")
 
 
 # save the plot as a png file
-png("plot_labforpart_BCQue_women-X-child-age.png", width=1024, height=768, res=120)
-plot(dataplot2)
-dev.off()
+#png("plot_labforpart_BCQue_women-X-child-age.png", width=1024, height=768, res=120)
+#plot(dataplot2)
+#dev.off()
 
+dataplot2
 
 ```
 
