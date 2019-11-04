@@ -52,6 +52,10 @@ library(cansim)
 
 ## Background
 
+The Daily, 2019-10-22
+
+* https://www150.statcan.gc.ca/n1/daily-quotidien/191022/dq191022a-eng.htm
+
 The Daily, 2019-02-22
 
 * https://www150.statcan.gc.ca/n1/daily-quotidien/190222/dq190222a-eng.htm?HPA=1
@@ -69,6 +73,7 @@ There are 3 data tables associated with this:
 https://www150.statcan.gc.ca/n1/daily-quotidien/180921/dq180921b-cansim-eng.htm
 
 
+The primary one is the first below:
 
 * Retail trade sales by province and territory (x 1,000)
 
@@ -122,6 +127,10 @@ print(glue("TABLE:  ", filenamenum))
 
 ls.str(data_20_10_0008)
 
+latest_month <- as_date(max(data_20_10_0008$REF_DATE))
+
+last_month <- latest_month - months(1)
+last_year <- latest_month - years(1)
 
 data_20_10_0008 %>%
   filter(
@@ -143,7 +152,7 @@ data_20_10_0008 %>%
          YOY_val, YOY_pct, YOY_chg) %>%
   ungroup() %>%
 #  filter(REF_DATE >= "2017-07-01", 
-  filter(REF_DATE %in% c(as.Date("2018-12-01")
+  filter(REF_DATE %in% c(as.Date(latest_month)
 #                         , 
 #                         as.Date("2018-11-01"), as.Date("2017-12-01")
                          ), 
@@ -177,7 +186,7 @@ data_Can_BC_YVR <- data_20_10_0008 %>%
 data_Can_BC_YVR
 
 data_Can_BC_YVR %>%
-  filter(REF_DATE %in% c(as.Date("2018-12-01"), as.Date("2018-11-01"), as.Date("2017-12-01")),
+  filter(REF_DATE %in% c(latest_month, last_month, last_year),
 #  filter(REF_DATE %in% c(as.Date("2018-07-01", "2018-06-01", "2017-07-01")),
          GEO == "Canada",
          `Classification Code for North American Industry Classification System (NAICS)` == "[44-45]",
@@ -247,246 +256,3 @@ write_csv(BC_data_0008, "BC_data_0008.csv")
 
 
 
-
-
-***
-
-old and plagiarized code, uncertain functionality
-
-```{r}
-
-
-BC_data_0008 %>%
-  filter(str_detect(
-    !!(BC_data_0008$`Classification Code for North American Industry Classification System (NAICS)`), 
-        "\\[...]")) 
-
-NAICScodes <- unique(BC_data_0008$`Classification Code for North American Industry Classification System (NAICS)`)
-str_detect(NAICScodes, "\\[...]")
-
-BC_data_0008 %>%
-    filter(str_detect(!!NAICScodes, "\\[...]")) 
-
-
-
-BC_data_0008 %>%
-  filter(REF_DATE == "2017-07-01")
-
-BC_data_0008 %>%
-  filter(REF_DATE == "2018-07-01")
-
-```
-
-
-plot: BC trend
-
-```{r}
-
-data_10_0011 %>%
-  filter(GEO %in% c("British Columbia"),
-    `Beneficiary detail` == "Regular benefits",
-    Sex == "Both sexes",
-    `Age group` == "15 years and over") %>%
-  mutate(MOM_pct = VALUE / lag(VALUE),
-         MOM_val = VALUE - lag(VALUE)) %>%
-  select(REF_DATE, VALUE, MOM_pct, MOM_val) %>%
-#filter(REF_DATE == "2018-07-01")
-  filter(REF_DATE >= "2006-01-01")
-
-
-data_10_0011 %>%
-  filter(GEO %in% c("British Columbia"),
-    `Beneficiary detail` == "Regular benefits",
-    Sex == "Both sexes",
-    `Age group` == "15 years and over") %>%
-  mutate(MOM_pct = VALUE / lag(VALUE),
-         MOM_val = VALUE - lag(VALUE)) %>%
-#filter(REF_DATE == "2018-07-01")
-  filter(REF_DATE >= "2005-01-01") %>%
-  ggplot(aes(x=REF_DATE, y=VALUE)) + 
-    geom_line(size=1.5) 
-
-
-```
-
-
-```{r}
-
-unique(year(data_10_0011$REF_DATE))
-
-data_10_0011 %>%
-  filter(GEO %in% c("British Columbia"),
-    `Beneficiary detail` == "Regular benefits",
-    Sex == "Both sexes",
-    `Age group` == "15 years and over") %>%
-  mutate(MOM_pct = VALUE / lag(VALUE),
-         MOM_val = VALUE - lag(VALUE)) %>%
-#filter(REF_DATE == "2018-07-01")
-  filter(REF_DATE >= "2005-01-01") %>%
-  ggplot(aes(x=REF_DATE, y=VALUE)) + 
-    geom_line(size=1.5) +
-  scale_x_date(date_breaks = "1 year", date_labels = "%Y",
-               minor_breaks = NULL)
-
-```
-
-
-```{r}
-
-dataplot <- data_10_0011 %>%
-  filter(GEO %in% c("British Columbia"),
-    `Beneficiary detail` == "Regular benefits",
-    Sex == "Both sexes",
-    `Age group` == "15 years and over") %>%
-  mutate(MOM_pct = VALUE / lag(VALUE),
-         MOM_val = VALUE - lag(VALUE)) %>%
-#filter(REF_DATE == "2018-07-01")
-  filter(REF_DATE >= "2005-01-01") %>%
-  ggplot(aes(x=REF_DATE, y=VALUE)) + 
-    geom_line(size=1.5, colour="#325A80") +
-  scale_x_date(date_breaks = "1 year", date_labels = "%Y",
-               minor_breaks = NULL)
-  
-
-
-
-dataplot2 <- dataplot +
-  #  ylim(3500000, 6500000) +
-  scale_y_continuous(labels = comma, limits = c(30000, 100000)) +
-#  scale_colour_manual(name=NULL,
-#                      breaks=c("Canada", "British Columbia"),
-#                      labels=c("Canada", "British Columbia"), 
-#                      values=c("#325A80", "#CCB550")) +
-  theme_bw() +
-  theme(
-    panel.border = element_rect(colour="white"),
-    plot.title = element_text(face="bold"),
-    legend.position=c(1,0), 
-    legend.justification=c(1,0),
-    legend.title = element_text(size=12),
-    legend.text = element_text(size=11),
-    axis.line = element_line(colour="black"),
-    axis.title = element_text(size=10),
-    axis.text = element_text(size=10)
-  )
-#
-dataplot2 
-
-# experiments with ggplot2's new subtitle and caption options
-
-EI_title <- as.character("Employment Insurance beneficiaries (seasonally adjusted), B.C.")
-EI_subtitle <- as.character("January 2010 = 100")
-EI_caption <- as.character("Source: Statistics Canada, CANSIM table 14-10-0011-01")
-EI_yaxis <- as.character("Number of EI beneficiaries")
-
-# add titles / X-Y axis labels / caption
-EI_plot <- dataplot2 +
-  labs(title = EI_title,
-#       subtitle = EI_subtitle,
-       caption = EI_caption, 
-       x = NULL, y = EI_yaxis) 
-
-EI_plot
-
-ggsave(filename = "EI_plot.png", plot = EI_plot,
-       width = 8, height = 6)
-
-```
-
-
-### B.C. Geography
-
-
-```{r}
-
-
-unique(data_10_0013$GeoUID)
-
-CMA_CA_list <- c("[11124]",
-                 "[59]", "[59A]", "[932]", "[915]", "[933]", "[935]", 
-                 "[59B]", "[944]", "[930]", "[943]", "[905]", 
-                 "[975]", "[937]", "[977]", "[925]", "[938]", "[939]", 
-                 "[913]", "[940]", "[945]", "[970]", "[955]", "[952]", 
-                 "[920]", "[934]", "[965]", "[918]", "[950]", 
-                 "[59C]", "[59996]", "[59997]", "[59998]", "[59999]")
-
-
-filenamenum <- "data_10_0013"
-
-print(glue("TABLE:  ", filenamenum))
-
-ls.str(data_10_0013)
-
-
-
-data_10_0013 %>%
-  filter(GeoUID %in% CMA_CA_list) %>%
-  group_by(GEO) %>%
-  mutate(MOM_pct = VALUE / lag(VALUE),
-         MOM_val = VALUE - lag(VALUE)) %>%
-#  arrange(desc(REF_DATE)) %>%
-  filter(REF_DATE == "2018-07-01")
-
-
-
-data_10_0013 %>%
-  filter(GeoUID %in% CMA_CA_list) %>%
-  group_by(GEO) %>%
-  mutate(MOM_pct = VALUE / lag(VALUE),
-         MOM_val = VALUE - lag(VALUE)) %>%
-  arrange(desc(MOM_val)) %>%
-  filter(REF_DATE == "2018-07-01")
-
-CMA_list <- c("[59A]", "[932]", "[915]", "[933]", "[935]")
-
-data_10_0013 %>%
-  filter(GeoUID %in% CMA_list) %>%
-  group_by(GEO) %>%
-  mutate(MOM_pct = VALUE / lag(VALUE),
-         MOM_val = VALUE - lag(VALUE)) %>%
-  arrange(desc(MOM_pct)) %>%
-  filter(REF_DATE == "2018-07-01")
-
-
-CA_list <- c("[59B]", "[944]", "[930]", "[943]", "[905]", 
-             "[975]", "[937]", "[977]", "[925]", "[938]", "[939]", 
-             "[913]", "[940]", "[945]", "[970]", "[955]", "[952]", 
-             "[920]", "[934]", "[965]", "[918]", "[950]")
-
-
-data_10_0013 %>%
-  filter(GeoUID %in% CA_list) %>%
-  group_by(GEO) %>%
-  mutate(MOM_pct = VALUE / lag(VALUE),
-         MOM_val = VALUE - lag(VALUE)) %>%
-  arrange(desc(MOM_pct)) %>%
-  filter(REF_DATE == "2018-07-01")
-
-```
-
-
-
-## July 2018 text
-
-Issue 18-nnn Employment Insurance
-
-September 20, 2018
-
-The number of people receiving employment insurance (EI) benefits in British Columbia rose 2.2% in July compared to June (seasonally adjusted), up by 900 to reach 42,570 individuals. This was the first increase seen since November 2017, and only the third in the 21 months since November 2016. In October 2016, the total number of people in B.C. receiving EI benefits was 57,000. Looking back over the last decade, the number of EI recipients in B.C. peaked at nearly 98,000 in June 2009.
-
-The increase in beneficiaries in British Columbia was observed in all census metropolitan areas in B.C. (+3.1%, or 680 persons). The largest increase was seen in Victoria, which added 290 persons (+14.5%) and Abbotsford (+140 persons, +7.7%). Census agglomerations also saw an aggregate increase (370 persons or +3.4%), although changes in the number of EI beneficiaries ranged from an increase of 31% (+110 persons) in Duncan to drop of 10.5% (-20 persons) in Dawson Creek. Areas outside census metropolitan areas and census agglomerations saw a drop of 140 persons or -1.5%.
-
-Nationally, the number of people receiving EI benefits rose 2.4% (an increase of 11,000 people) compared to June. The three provinces with rates of increase higher than the national rate were Manitoba (+18.2%), Quebec (+4.5%), and Prince Edward Island (+4.0%). Statistics Canada reports that the number of EI beneficiaries "fell slightly in Saskatchewan (-1.3%) and Newfoundland and Labrador (-1.0%), while it was little changed in Nova Scotia and Ontario."
-
-
-Data Source: Statistics Canada (https://www150.statcan.gc.ca/n1/daily-quotidien/180920/dq180920a-eng.htm)
-
-
-
-
-***
-
-### footnotes
-
-[^1]
->Geographical definitions: A census metropolitan area (CMA) or a census agglomeration (CA) is formed by one or more adjacent municipalities centred on a population centre. A CMA must have a total population of at least 100,000. A CA must have a population of at least 10,000. See Standard Geographical Classification 2011 – definitions for more information.
