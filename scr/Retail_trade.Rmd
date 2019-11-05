@@ -35,11 +35,13 @@ library(tidyverse)
 #library(dplyr)
 library(stringr)
 library(glue)
-
-# monthly data series
 library(lubridate)
+
 # extending ggplot2
-library("scales")
+library(scales)
+
+# utilities
+library(janitor)
 
 # cansim
 #install.packages("devtools")
@@ -73,13 +75,15 @@ There are 3 data tables associated with this:
 https://www150.statcan.gc.ca/n1/daily-quotidien/180921/dq180921b-cansim-eng.htm
 
 
-The primary one is the first below:
+The primary table:
 
 * Retail trade sales by province and territory (x 1,000)
 
   - Table: 20-10-0008-01 (formerly CANSIM  080-0020)
   
   - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=2010000801
+
+Supplementary tables:
 
 * Retail E-commerce sales, unadjusted (x 1,000)
 
@@ -102,18 +106,44 @@ Read the data
 
 ```{r}
 
-data_20_10_0008 <- get_cansim("20-10-0008-01")
+data_20_10_0008_source <- get_cansim("20-10-0008-01")
 
-data_20_10_0008 <- data_20_10_0008 %>%
-    mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
-  
+data_20_10_0008 <- data_20_10_0008_source %>%
+    mutate(ref_date = ymd(ref_date, truncated = 2)) 
 
-data_20_10_0078 <- get_cansim("20-10-0078-01")
+# the other tables  
 
-data_20_10_0078 <- data_20_10_0078 %>%
-    mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) 
+#data_20_10_0078 <- get_cansim("20-10-0078-01")
+#
+#data_20_10_0078 <- data_20_10_0078 %>%
+#    mutate(ref_date = ymd(ref_date, truncated = 2)) 
   
 ```
+
+
+data cleaning
+
+
+```{r}
+
+# run {janitor} to clean up names
+# see http://sfirke.github.io/janitor/ for functions
+data_20_10_0008 <- janitor::clean_names(data_20_10_0008)
+
+
+# set table number as variable
+tablenum <- "data_20_10_0008"
+print(glue("TABLE:  ", tablenum))
+
+# set date variables
+latest_month <- as_date(max(data_20_10_0008$ref_date))
+last_month <- latest_month - months(1)
+last_year <- latest_month - years(1)
+
+
+
+```
+
 
 
 
@@ -121,80 +151,29 @@ try some filtering
 
 ```{r}
 
-filenamenum <- "data_20_10_0008"
-
-print(glue("TABLE:  ", filenamenum))
-
-ls.str(data_20_10_0008)
-
-latest_month <- as_date(max(data_20_10_0008$REF_DATE))
-
-last_month <- latest_month - months(1)
-last_year <- latest_month - years(1)
-
 data_20_10_0008 %>%
   filter(
-#    GEO == "British Columbia",
-    `Adjustments` %in% c("Unadjusted", "Seasonally adjusted"),
-    `Classification Code for North American Industry Classification System (NAICS)` == "[44-45]") %>%
-  group_by(GEO, `Adjustments`) %>%
-  mutate(MOM_val = lag(VALUE),
-         MOM_pct = ((VALUE / lag(VALUE, n = 1)) - 1) * 100,
-         MOM_chg = (VALUE - lag(VALUE, n = 1)) ) %>%
-  mutate(YOY_val = lag(VALUE, n = 12),
-         YOY_pct = ((VALUE / lag(VALUE, n = 12)) - 1) * 100,
-         YOY_chg = (VALUE - lag(VALUE, n = 12)) ) %>%
-  arrange(desc(REF_DATE)) %>%
-  select(REF_DATE, GEO,
+#    geo == "British Columbia",
+    adjustments %in% c("Unadjusted", "Seasonally adjusted"),
+    classification_code_for_north_american_industry_classification_system_naics == "[44-45]") %>%
+  group_by(geo, adjustments) %>%
+  mutate(mom_val = lag(value),                                     
+         mom_pct = ((value / lag(value, n = 1)) - 1) * 100,
+         mom_chg = (value - lag(value, n = 1)) ) %>%
+  mutate(yoy_val = lag(value, n = 12),
+         yoy_pct = ((value / lag(value, n = 12)) - 1) * 100,
+         yoy_chg = (value - lag(value, n = 12)) ) %>%
+  arrange(desc(ref_date)) %>%
+  select(ref_date, geo,
          Adjustments,
-         VALUE, 
-         MOM_val, MOM_pct, MOM_chg,
-         YOY_val, YOY_pct, YOY_chg) %>%
+         value, 
+         mom_val, mom_pct, mom_chg,
+         yoy_val, yoy_pct, yoy_chg) %>%
   ungroup() %>%
-#  filter(REF_DATE >= "2017-07-01", 
-  filter(REF_DATE %in% c(as.Date(latest_month)
-#                         , 
-#                         as.Date("2018-11-01"), as.Date("2017-12-01")
-                         ), 
-         `Adjustments` == "Seasonally adjusted") %>%
-  arrange(MOM_pct)
-
-
-unique(data_20_10_0008$GEO)
-
-data_Can_BC_YVR <- data_20_10_0008 %>%
-  filter(GEO %in% c("Canada", "British Columbia", "Vancouver, British Columbia"), 
-    `Adjustments` %in% c("Unadjusted", "Seasonally adjusted") ) %>%
-  group_by(GEO, 
-           `Adjustments`,
-           `Classification Code for North American Industry Classification System (NAICS)`) %>%
-  mutate(MOM_val = lag(VALUE),
-         MOM_pct = ((VALUE / lag(VALUE, n = 1)) - 1) * 100,
-         MOM_chg = (VALUE - lag(VALUE, n = 1)) ) %>%
-  mutate(YOY_val = lag(VALUE, n = 12),
-         YOY_pct = ((VALUE / lag(VALUE, n = 12)) - 1) * 100,
-         YOY_chg = (VALUE - lag(VALUE, n = 12)) ) %>%
-  arrange(desc(REF_DATE)) %>%
-  select(REF_DATE, GEO,
-         `Classification Code for North American Industry Classification System (NAICS)`,        
-         Adjustments,
-         VALUE, 
-         MOM_val, MOM_pct, MOM_chg,
-         YOY_val, YOY_pct, YOY_chg) %>%
-  ungroup() 
-
-data_Can_BC_YVR
-
-data_Can_BC_YVR %>%
-  filter(REF_DATE %in% c(latest_month, last_month, last_year),
-#  filter(REF_DATE %in% c(as.Date("2018-07-01", "2018-06-01", "2017-07-01")),
-         GEO == "Canada",
-         `Classification Code for North American Industry Classification System (NAICS)` == "[44-45]",
-         `Adjustments` == "Seasonally adjusted")
-
-
-write_csv(data_Can_BC_YVR, "data_Can_BC_YVR.csv")
-
+#  filter(ref_date >= "2017-07-01", 
+  filter(ref_date %in% c(as.Date(latest_month)), 
+         adjustments == "Seasonally adjusted") %>%
+  arrange(mom_pct)
 
 ```
 
@@ -203,52 +182,116 @@ write_csv(data_Can_BC_YVR, "data_Can_BC_YVR.csv")
 
 ```{r}
 
+unique(data_20_10_0008$geo)
+
+data_Can_BC_YVR <- data_20_10_0008 %>%
+  filter(geo %in% c("Canada", "British Columbia", "Vancouver, British Columbia"), 
+    adjustments %in% c("Unadjusted", "Seasonally adjusted") ) %>%
+  group_by(geo, 
+           adjustments,
+           classification_code_for_north_american_industry_classification_system_naics) %>%
+  mutate(mom_val = lag(value),
+         mom_pct = ((value / lag(value, n = 1)) - 1) * 100,
+         mom_chg = (value - lag(value, n = 1)) ) %>%
+  mutate(yoy_val = lag(value, n = 12),
+         yoy_pct = ((value / lag(value, n = 12)) - 1) * 100,
+         yoy_chg = (value - lag(value, n = 12)) ) %>%
+  arrange(desc(ref_date)) %>%
+  select(ref_date, geo,
+         classification_code_for_north_american_industry_classification_system_naics,        
+         adjustments,
+         value, 
+         mom_val, mom_pct, mom_chg,
+         yoy_val, yoy_pct, yoy_chg) %>%
+  ungroup() 
+
+data_Can_BC_YVR
+
+write_csv(data_Can_BC_YVR, "data_Can_BC_YVR.csv")
+
+```
+
+```{r}
+
+
+data_Can_BC_YVR %>%
+  filter(ref_date %in% c(latest_month, last_month, last_year),
+         geo == "Canada",
+         classification_code_for_north_american_industry_classification_system_naics == "[44-45]",
+         adjustments == "Seasonally adjusted")
+
+
+
+```
+
+
+create BC-only version of the table
+
+- note: that's three times calculating mom and yoy values ... time to write a function!
+
+```{r}
+
 
 BC_data_0008 <- 
  data_20_10_0008 %>%
-  filter(GEO == "British Columbia",
-    `Adjustments` %in% c("Unadjusted", "Seasonally adjusted") ) %>%
-  group_by(GEO, `Adjustments`,
-           `Classification Code for North American Industry Classification System (NAICS)`) %>%
-  mutate(MOM_val = lag(VALUE),
-         MOM_pct = ((VALUE / lag(VALUE, n = 1)) - 1) * 100,
-         MOM_chg = (VALUE - lag(VALUE, n = 1)) ) %>%
-  mutate(YOY_val = lag(VALUE, n = 12),
-         YOY_pct = ((VALUE / lag(VALUE, n = 12)) - 1) * 100,
-         YOY_chg = (VALUE - lag(VALUE, n = 12)) ) %>%
-  arrange(VECTOR, REF_DATE) %>%
+  filter(geo == "British Columbia",
+         adjustments %in% c("Unadjusted", "Seasonally adjusted") ) %>%
+  group_by(geo, adjustments,
+           classification_code_for_north_american_industry_classification_system_naics) %>%
+  mutate(mom_val = lag(value),
+         mom_pct = ((value / lag(value, n = 1)) - 1) * 100,
+         mom_chg = (value - lag(value, n = 1)) ) %>%
+  mutate(yoy_val = lag(value, n = 12),
+         yoy_pct = ((value / lag(value, n = 12)) - 1) * 100,
+         yoy_chg = (value - lag(value, n = 12)) ) %>%
+  arrange(vector, ref_date) %>%
   ungroup()
 
 BC_data_0008
 
+```
+
+
+Month over month, total retail (2 digit NAICS)
+
+
+```{r}
+
+
 BC_data_0008 %>%
   filter(
-    REF_DATE == "2018-12-01",
-         `Classification Code for North American Industry Classification System (NAICS)` 
+    ref_date == latest_month,
+         classification_code_for_north_american_industry_classification_system_naics 
          == "[44-45]") %>%
-  select(REF_DATE, GEO, 
-         `North American Industry Classification System (NAICS)`,
-         Adjustments, VALUE,
-         MOM_val, MOM_pct) %>%
-  mutate(MOM_netchange = VALUE - MOM_val) %>%
-  arrange(MOM_netchange)
+  select(ref_date, geo, 
+         north_american_industry_classification_system_naics,
+         Adjustments, value,
+         mom_val, mom_pct) %>%
+  mutate(mom_netchange = value - mom_val) %>%
+  arrange(mom_netchange)
+
+```
 
 
-# Year over year, major retail groups (3 digit NAICS)
+Year over year, major retail groups (3 digit NAICS)
+
+
+```{r}
+
 BC_data_0008 %>%
   filter(
-    REF_DATE == "2018-12-01",
+    ref_date == latest_month,
     str_detect(
-      `Classification Code for North American Industry Classification System (NAICS)`, "\\[4..\\]")
+      classification_code_for_north_american_industry_classification_system_naics, "\\[4..\\]")
     ) %>%
-    select(REF_DATE, GEO, 
-         `North American Industry Classification System (NAICS)`,
-         `Classification Code for North American Industry Classification System (NAICS)`, 
-         Adjustments, VALUE,
-#         MOM_val, MOM_pct, 
-         YOY_val, YOY_pct) %>%
-  mutate(YOY_netchange = VALUE - YOY_val) %>%
-  arrange(YOY_netchange)
+    select(ref_date, geo, 
+         north_american_industry_classification_system_naics,
+         classification_code_for_north_american_industry_classification_system_naics, 
+         Adjustments, value,
+#         mom_val, mom_pct, 
+         yoy_val, yoy_pct) %>%
+  mutate(yoy_netchange = value - yoy_val) %>%
+  arrange(yoy_netchange)
 
 write_csv(BC_data_0008, "BC_data_0008.csv")
 
