@@ -34,7 +34,7 @@ This set of scripts creates summary tables and graphs plotting the monthly SEPH 
 
 #### packages
 
-```{r, packages}
+```{r setup, packages}
 
 # tidyverse
 library(tidyverse)
@@ -92,14 +92,14 @@ This script uses the [R package {cansim}](https://github.com/mountainMath/cansim
 
 ```{r data_read}
 
-#data_34_10_0175 <- get_cansim("34-10-0175-01")
+data_34_10_0175 <- get_cansim("34-10-0175-01")
 
 # {cansim} giving me grief today...time to investigate and perhaps file an issue
 # data downloaded from https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3410017501 
 # (see "Download options" button on right)
 # unzipped files saved in project folder, in sub-folder \data\
 
-data_34_10_0175 <- read_csv(here("data", "34100175.csv"))
+#data_34_10_0175 <- read_csv(here("data", "34100175.csv"))
 
 data_coninv <- data_34_10_0175 %>%
   janitor::clean_names() %>%
@@ -130,13 +130,54 @@ unique(data_coninv$investment_value)
 
 unique(data_coninv$type_of_work)
 
+unique(data_coninv$type_of_structure)
+
+last_date <- max(data_coninv_bc$ref_date)
+
+last_date
+
 ```
 
 
 ```{r}
 
+data_coninv_bc %>% 
+  filter(ref_date == last_date)
 
-last_date <- max(data_coninv_bc$ref_date)
+```
+
+
+
+```{r}
+
+data_coninv_bc %>%
+  filter(type_of_work == "Types of work, total",
+         investment_value == "Seasonally adjusted - current",
+         type_of_structure %in% c("Total residential and non-residential",
+                                  "Total residential",
+                                  "Single dwelling building total",
+                                  "Multiple dwelling building total",
+                                  "Total non-residential",
+                                  "Total industrial",
+                                  "Total commercial",
+                                  "Total institutional and governmental")) %>% 
+  group_by(type_of_structure) %>% 
+  mutate(MOM = value - lag(value, 1),
+         YOY = value - lag(value, 12)) %>% 
+  mutate(MOM_pct = (MOM/value * 100),
+         YOY_pct = (YOY/value * 100)) %>% 
+  ungroup() %>% 
+  select(ref_date, geo, type_of_structure,
+         value, MOM, MOM_pct, YOY, YOY_pct) %>% 
+  filter(ref_date == last_date)
+
+```
+
+
+
+
+```{r}
+
 
 data_coninv_bc <- data_coninv_bc %>%
   filter(ref_date == last_date,
@@ -230,7 +271,7 @@ plot, with formatting
 
 coninv_plot +
   labs(title = "Investment in Building Construction",
-       subtitle = "British Columbia, June 2019",
+       subtitle = "British Columbia, November 2019",
        caption = "Source: Statistics Canada. Table 34-10-0175-01; Investment in Building Construction") +
   xlab(element_blank()) +
   ylab("$ (unadjusted, current)") +
