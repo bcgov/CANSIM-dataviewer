@@ -32,6 +32,27 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE)
 
 This set of scripts creates summary tables and graphs plotting the monthly SEPH data collected and reported by Statistics Canada.
 
+## Background
+
+
+Investment in building construction, November 2019
+https://www150.statcan.gc.ca/n1/daily-quotidien/200121/dq200121b-eng.htm
+
+The Daily, 2019-07-25: Investment in building construction, June 2019
+https://www150.statcan.gc.ca/n1/daily-quotidien/190821/dq190821b-eng.htm?CMP=mstatcan
+
+
+
+## -- Data
+
+* Investment in Building Construction
+
+  - Table: 34-10-0175-01
+  
+  - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3410017501
+
+
+
 #### packages
 
 ```{r setup, packages}
@@ -103,25 +124,6 @@ bcstats_chart_theme <-
 
 ---
 
-## Background
-
-
-Investment in building construction, November 2019
-https://www150.statcan.gc.ca/n1/daily-quotidien/200121/dq200121b-eng.htm
-
-The Daily, 2019-07-25: Investment in building construction, June 2019
-https://www150.statcan.gc.ca/n1/daily-quotidien/190821/dq190821b-eng.htm?CMP=mstatcan
-
-
-
-## -- Data
-
-* Investment in Building Construction
-
-  - Table: 34-10-0175-01
-  
-  - https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3410017501
-
 
 ### Read the data
 
@@ -191,6 +193,8 @@ data_coninv_bc %>%
 
 
 
+### Summary table: most recent month
+
 ```{r}
 
 df_coninv_bc_major <- data_coninv_bc %>%
@@ -220,22 +224,26 @@ df_coninv_bc_major %>%
 ```
 
 
+### single month summary
 
+* last_date
+
+* by total
 
 ```{r}
 
 
-data_coninv_bc <- data_coninv_bc %>%
+data_coninv_bc_total_lastmonth <- data_coninv_bc %>%
   filter(ref_date == last_date,
          investment_value == "Unadjusted - current",
          type_of_work == "Types of work, total")
 
-data_coninv_bc
+data_coninv_bc_total_lastmonth
 
-unique(data_coninv_bc$type_of_structure)
+unique(data_coninv_bc_total_lastmonth$type_of_structure)
 
 data_summary <-
-data_coninv_bc %>%
+data_coninv_bc_total_lastmonth %>%
   mutate(type_grp = case_when(
     type_of_structure == "Single dwelling building total" ~ "Residential",
     type_of_structure == "Multiple dwelling building total" ~ "Residential",
@@ -335,7 +343,7 @@ coninv_plot +
 
 ```{r}
 
-ggsave(filename = "construction_investment_plot.png", 
+ggsave(filename = "construction_investment_month.png", 
        width = 8, height = 6)
 
 
@@ -380,14 +388,14 @@ dataplot2 <- dataplot +
   scale_colour_brewer(palette = "Set1") +
   guides(colour = guide_legend(nrow=3, byrow=TRUE)) +
   labs(title = "Investment in Building Construction, B.C.",
-       subtitle = "By type of structure (Seasonally adjusted - constant)",
+       subtitle = "Total types of work, By type of structure (Seasonally adjusted - constant)",
        caption = "Source: Statistics Canada. Table 34-10-0175-01; Investment in Building Construction", 
        x = NULL, y = "$") 
 
     
 dataplot2 
 
-ggsave(dataplot2, filename = "investment_construction_2019-11.png",
+ggsave(dataplot2, filename = "construction_investment_trend.png",
        width = 8, height = 6)
 
 ```
