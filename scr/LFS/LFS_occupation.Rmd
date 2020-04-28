@@ -1,0 +1,81 @@
+---
+title: "LFS - occupation summary"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(lubridate)
+
+library(cansim)
+```
+
+
+## Data sources
+
+
+Labour force characteristics by occupation, monthly, unadjusted for seasonality (x 1,000)
+Frequency: Monthly
+
+Table: 14-10-0296-01 (formerly CANSIM 282-0141)
+
+Geography: Canada, Province or territory
+
+
+
+```{r}
+
+df_1410029601 <- get_cansim("14-10-0296-01")
+
+df_1410029601 <- janitor::clean_names(df_1410029601)
+
+df_1410029601 <- df_1410029601 %>% 
+  mutate(ref_date_2 = glue::glue("{ref_date}-01")) %>% 
+  mutate(ref_date_2 = ymd(ref_date_2)) 
+
+write_rds(df_1410029601, here::here("data", "df_1410029601.rds"))
+
+```
+
+
+```{r}
+df_14100194 <- janitor::clean_names(df_14100194)
+
+df_14100194 <- df_14100194 %>% 
+  mutate(ref_date_2 = glue::glue("{ref_date}-01-01")) %>% 
+  mutate(ref_date_2 = ymd(ref_date_2)) %>% 
+  mutate(presence_of_children = as.factor(presence_of_children))
+
+
+head(df_14100194)
+
+unique(df_14100194$presence_of_children)
+
+df_14100194$presence_of_children <- 
+  fct_relevel(df_14100194$presence_of_children, 
+            levels = c("Preschoolers, under 5 years",
+                       "Children 5 to 12 years",
+                       "Children 13 years and over"))
+
+levels(df_14100194$presence_of_children)
+
+```
+
+
+
+Actual hours worked by occupation, annual
+Frequency: Annual
+
+Table: 14-10-0301-01 (formerly CANSIM 282-0146)
+
+Geography: Canada, Province or territory
+
+
+Labour force characteristics by occupation, annual
+Frequency: Annual
+
+Table: 14-10-0335-01
+
+Geography: Canada, Province or territory
+
+

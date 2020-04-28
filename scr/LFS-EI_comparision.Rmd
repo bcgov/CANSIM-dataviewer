@@ -1,0 +1,78 @@
+---
+title: "What proportion of each occupation have made EI claims?"
+subtitle: "COVID impacts"
+output: html_notebook
+---
+
+
+```{r setup}
+library(tidyverse)
+library(lubridate)
+library(readxl)
+```
+
+
+```{r}
+
+df_1410029601 <- read_rds(here::here("data", "df_1410029601.rds"))
+
+# filter BC employment at 2 digit NOC
+df_lfs_bc_noc2 <- df_1410029601 %>% 
+  filter(geo == "British Columbia",
+         labour_force_characteristics == "Employment",
+         sex == "Both sexes") %>% 
+  rename("noc_code" = classification_code_for_national_occupational_classification_noc) %>% 
+  filter(str_detect(noc_code, "\\[\\d{2}\\]"))
+
+write_rds(df_lfs_bc_noc2, here::here("data", "df_lfs_bc_noc2.rds"))
+
+df_lfs_bc_noc2
+
+```
+
+
+```{r}
+df_ei <- read_excel(here::here("data", "2A73-DAS-EIApplicants_BC_20200301to202000426--2A73-DIR-20200427-VF-AK.xlsx"),
+                    sheet = "By NOC - Par CNP")
+
+df_ei_noc <- df_ei %>% 
+  select(-`...3`, -`Total`) %>% 
+  rename("noc4" = `Appliweb Applicants/Candidats de l'Appliweb`,
+         "noc4_desc" = `...2`) %>% 
+  filter(noc4 != "Total") %>% 
+  mutate("noc2" = str_sub(noc4, 1, 2)) %>% 
+  select(noc2, everything()) %>% 
+  pivot_longer(cols = -(noc2:noc4_desc), names_to = "date_week", values_to = "ei_app_count") %>% 
+  mutate("month_app" = str_sub(date_week, 4, 5))
+
+
+write_rds(df_ei_noc, here::here("data", "df_ei_noc.rds"))
+
+```
+
+
+## summary statistics
+
+```{r}
+# total over period, by 4 digit NOC (i.e. column M in table)
+df_ei_noc %>% 
+  group_by(noc4) %>% 
+  summarise(total_ei = sum(ei_app_count, na.rm = TRUE)) %>% 
+  arrange(desc(total_ei))
+
+
+# total over period, by 2 digit NOC
+df_ei_noc %>% 
+  group_by(noc2) %>% 
+  summarise(total_ei = sum(ei_app_count, na.rm = TRUE)) %>% 
+  arrange(desc(total_ei))
+
+# total April, by 2 digit NOC
+df_ei_noc %>%
+  filter(month_app == "03") %>% 
+  group_by(noc2) %>% 
+  summarise(total_ei = sum(ei_app_count, na.rm = TRUE)) %>% 
+  arrange(noc2)
+
+```
+
