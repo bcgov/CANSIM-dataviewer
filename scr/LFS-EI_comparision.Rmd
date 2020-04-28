@@ -7,10 +7,14 @@ output: html_notebook
 
 ```{r setup}
 library(tidyverse)
+library(glue)
 library(lubridate)
 library(readxl)
 ```
 
+## LFS data
+
+(see "scr\LFS\LFS_occupation.Rmd" for details)
 
 ```{r}
 
@@ -30,6 +34,8 @@ df_lfs_bc_noc2
 
 ```
 
+
+## EI
 
 ```{r}
 df_ei <- read_excel(here::here("data", "2A73-DAS-EIApplicants_BC_20200301to202000426--2A73-DIR-20200427-VF-AK.xlsx"),
@@ -67,12 +73,40 @@ df_ei_noc %>%
   summarise(total_ei = sum(ei_app_count, na.rm = TRUE)) %>% 
   arrange(desc(total_ei))
 
-# total April, by 2 digit NOC
-df_ei_noc %>%
+# total single month, by 2 digit NOC
+df_ei_March <- df_ei_noc %>%
   filter(month_app == "03") %>% 
   group_by(noc2) %>% 
   summarise(total_ei = sum(ei_app_count, na.rm = TRUE)) %>% 
-  arrange(noc2)
+  arrange(noc2) %>% 
+  mutate(noc2 = as.character(glue("[{noc2}]")))
+
+df_ei_March
 
 ```
+
+
+## Analysis
+
+### Compare March EI to February LFS
+
+
+```{r}
+
+df_est_pct <- 
+df_lfs_bc_noc2 %>% 
+  filter(ref_date == "2020-02") %>% 
+  right_join(df_ei_March, by = c("noc_code" = "noc2")) %>% 
+  select(ref_date, ,
+         national_occupational_classification_noc, noc_code,
+         value,
+         total_ei) %>% 
+  mutate(pct_ei = total_ei / (value * 1000))
+
+df_est_pct
+
+write_csv(df_est_pct, here::here("data", "df_est_pct.csv"))
+
+```
+
 
