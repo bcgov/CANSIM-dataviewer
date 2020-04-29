@@ -35,6 +35,29 @@ df_lfs_bc_noc2
 ```
 
 
+```{r}
+
+df_lfs_bc_noc2_2020_03 <-
+df_lfs_bc_noc2 %>% 
+  select(ref_date, 
+         national_occupational_classification_noc, 
+         noc_code,
+         value) %>% 
+  group_by(noc_code) %>% 
+  mutate(prv_mon = lag(value, 1),
+         chg_mom = value - prv_mon,
+         pctchg_mom = chg_mom/prv_mon) %>% 
+  ungroup() %>% 
+  filter(ref_date == "2020-03")
+
+df_lfs_bc_noc2_2020_03
+
+write_csv(df_lfs_bc_noc2_2020_03, here::here("data", "df_lfs_bc_noc2_2020_03.csv"))
+
+```
+
+
+
 ## EI
 
 ```{r}
@@ -53,6 +76,8 @@ df_ei_noc <- df_ei %>%
 
 
 write_rds(df_ei_noc, here::here("data", "df_ei_noc.rds"))
+
+#df_ei_noc <- read_rds(here::here("data", "df_ei_noc.rds"))
 
 ```
 
@@ -97,7 +122,7 @@ df_est_pct <-
 df_lfs_bc_noc2 %>% 
   filter(ref_date == "2020-02") %>% 
   right_join(df_ei_March, by = c("noc_code" = "noc2")) %>% 
-  select(ref_date, ,
+  select(ref_date, 
          national_occupational_classification_noc, noc_code,
          value,
          total_ei) %>% 
@@ -109,4 +134,18 @@ write_csv(df_est_pct, here::here("data", "df_est_pct.csv"))
 
 ```
 
+
+
+```{r}
+
+df_est_pct_2 <-
+df_lfs_bc_noc2_2020_03 %>% 
+  right_join(df_ei_March, by = c("noc_code" = "noc2")) %>% 
+  mutate(pct_ei = total_ei / (value * 1000))
+
+
+write_csv(df_est_pct_2, here::here("data", "df_est_pct_2.csv"))
+
+
+```
 
