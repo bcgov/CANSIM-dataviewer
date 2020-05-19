@@ -1,0 +1,548 @@
+<!--
+Copyright 2018-2020 Province of British Columbia
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and limitations under the License.
+-->
+
+---
+title: "R in data analysis - an example"
+author: "Martin Monkman, Julie Hawkins, and Stephanie Yurchak"
+subtitle: "New Housing Price Index"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+---
+
+
+## The data science process
+
+This walkthrough follows the data science process, as described by Hadley Wickham and Garrett Grolemund in [_R for Data Science_](https://r4ds.had.co.nz/).
+
+![The data science process](data-science.png)
+
+***
+
+## New Housing Price Index
+
+This set of scripts creates summary tables and graphs plotting the New Housing Price Index (NHPI) data collected and reported by Statistics Canada.
+
+Our end point will be this chart:
+
+![New Housing Price Index, B.C. and Canada](NHPI_plot_800.png)
+
+The original source code, created by Martin Monkman with contributions by Julie Hawkins and Stephanie Yurchak, can be found here:  https://github.com/bcgov/CANSIM-dataviewer/blob/master/scr/NHPI_cansim.Rmd
+
+***
+
+### Setup
+
+This chunk of R code loads the packages that we will be using
+
+```{r setup, message=FALSE, warning=FALSE}
+# tidyverse
+library(tidyverse)
+library(lubridate)  # date functions
+library(scales)     # extending {ggplot2}
+#
+# utilities
+library(cansim)     # data extract
+library(janitor)    # for `clean_names()`
+library(knitr)      # for publication - includes `kable()` for tables
+library(kableExtra) # - format kable tables
+```
+
+
+First, we have some code for two custom functions that calculate month-over-month and year-over-year statistics. These will be called later in the scripts. Functions give us a shorthand way to do the same thing multiple times.
+
+
+```{r functions}
+get_mom_stats <- function(df) {
+  df %>%
+    arrange(ref_date) %>%
+    mutate(mom_val = lag(value), 
+           mom_pct = ((value / lag(value, n = 1)) - 1) * 100,
+           mom_chg = (value - lag(value, n = 1)))
+}
+
+
+get_yoy_stats <- function(df) {
+  df %>%
+    arrange(ref_date) %>%
+    mutate(yoy_val = lag(value, n = 12),
+           yoy_pct = ((value / lag(value, n = 12)) - 1) * 100,
+           yoy_chg = (value - lag(value, n = 12)))
+}
+
+```
+
+We then create a chart theme that will also be called later. Like functions, this streamlines our code and helps reduce the chance of error. For this chart theme, more than 10 lines of code gets reduced to a simple, memorable name.
+
+
+```{r bcstats_chart_theme}
+
+bcstats_chart_theme <-
+  theme_bw() +
+  theme(
+    panel.border = element_rect(colour="white"),
+    plot.title = element_text(face="bold"),
+    legend.position=c(1,0), 
+    legend.justification=c(1,0),
+    legend.title = element_text(size=12),
+    legend.text = element_text(size=11),
+    axis.line = element_line(colour="black"),
+    axis.title = element_text(size=12),
+    axis.text = element_text(size=12)
+  )
+
+
+```
+
+
+---
+
+## IMPORT
+
+The first step is to import the data. For this, we will access Statistics Canada's database CANSIM, using an R package [{cansim}](https://github.com/mountainMath/cansim). The file has 18 variables and over 56,000 rows (as of February 2020) and growing every month. 
+
+
+**data source**
+
+[The Daily, 2019-10-10](https://www150.statcan.gc.ca/n1/daily-quotidien/191010/dq191010a-eng.htm)
+
+Table: 18-10-0205-01 (formerly CANSIM  327-0056)
+https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810020501 
+
+
+**Note:** "The index base period, for which the New Housing Price Index (NHPI) equals 100, is December 2016." 
+
+
+This version (updated 2018-12-13) uses the `cansim` package to pull the data from CANSIM.
+
+```{r data_import}
+
+table_id = "18-10-0205-01"
+
+thedata <- get_cansim(table_id)
+
+thedata
+
+```
+
+Now we can review other aspects of the data object:
+
+```{r}
+
+ls.str(thedata)
+
+```
+
+
+***
+
+## TIDY
+
+### cleaning
+
+Cleaning up our data table before we start working is often the next step. In this case, we wil use the [{janitor}](http://sfirke.github.io/janitor/) package to clean the variable names. 
+
+The values in the date field is also problematic--they are stored as character strings. We will clean the values by specifying them as a "date" format.
+
+```{r cleanup}
+thedata <- janitor::clean_names(thedata)
+
+thedata <- thedata %>%
+    mutate(ref_date = ymd(ref_date, truncated = 2)) 
+
+head(thedata)
+```
+
+### what's in the data frame?
+
+It's a good practice before starting any data analysis to understand the structure of your data, by interogating the variables and the values in those variables.
+
+{cansim} (like many other data-focussed packages) provides some utility functions that let us quickly understand the data frame. Here we use the function `get_cansim_table_overview` to generate an overview of the table we downloaded.
+
+```{r interogate1}
+# from the {cansim} package
+get_cansim_table_overview(table_id)
+
+```
+
+
+We can explore the individual variables as well--let's generate a small table showing all of the instances of the `geo` and `geo_uid` variables:
+
+```{r interogate2}
+
+thedata %>%
+  group_by(geo, geo_uid) %>%
+  tally()
+```
+
+### data manipulation
+
+In this next step, we will:
+
+* select our variables of interest to make the dataframe more manageable (we don't need all 18 in the original data frame)
+
+* add month-over-month and year-over-year values
+
+
+```{r manipulation}
+
+thedata <- thedata %>%
+  select(ref_date, geo, new_housing_price_indexes,
+         value) %>%
+  # add mom and yoy - group first, then run functions
+  group_by(geo, new_housing_price_indexes) %>%
+  get_mom_stats() %>%
+  get_yoy_stats %>%
+  ungroup() %>%
+  # sort
+  arrange(geo, ref_date)
+
+head(thedata)
+
+```
+
+
+#### BC & Canada data
+
+For our chart, we don't need all the geographic regions--just B.C. and Canada. And for our purposes, we want the chart to start in 2007, not 1981.
+
+To do that, we use two functions from the {dplyr} package: `filter` (to pick the rows we want) and `select` (to pick the columns).
+
+```{r filter}
+startdate <- as.Date("2007-01-01")
+
+# filter to have BC and Canada
+thedata_BC_Can <- thedata %>%
+  filter(ref_date >= startdate) %>%
+  filter(geo %in% c("British Columbia", "Canada"), 
+         new_housing_price_indexes == "Total (house and land)") %>%
+  select(ref_date, geo, new_housing_price_indexes, value)
+
+head(thedata_BC_Can)
+```
+
+
+
+---
+
+
+## UNDERSTAND
+
+### Visualize - tables
+
+
+One way to understand your data is to create a summary table that is more easily scanned by the human eye.
+
+In this case, we will put the rows as each year, and the columns as the months January through December.
+
+
+```{r table1}
+
+NHPI_table <- thedata_BC_Can %>%
+  filter(geo == "British Columbia") %>%
+  mutate(year = year(ref_date),
+         month = month(ref_date, label = TRUE)) %>%
+  select(year, month, value) %>%
+  pivot_wider(names_from = month, values_from = value) %>%
+  arrange(desc(year))
+
+# display the table
+head(NHPI_table)
+
+```
+
+
+For the next piece, we will calculate an annual average for each year, and add that column to the table. 
+
+This is a good time to say that there are often multiple ways to get to the same result--they are not "right" or "wrong", just different. Here are three different ways to create a column with the annual average (and I just thought of a fourth):
+
+
+```{r table2}
+# how to add annual average
+# Julie's genius solution
+NHPI_table2 <- NHPI_table %>%
+  mutate(annual_avg = rowMeans(NHPI_table[-1], na.rm = TRUE))
+head(NHPI_table2)
+```
+
+
+
+
+```{r table3}
+# Stephanie's genius solution
+# starts with the raw data table
+NHPI_table3 <- thedata_BC_Can %>%
+  filter(geo == "British Columbia") %>%
+  mutate(year = year(ref_date),
+         month = month(ref_date, label = TRUE)) %>%
+  select(year, month, value) %>%
+  group_by(year) %>%
+  mutate(annual_avg = mean(value, na.rm = TRUE)) %>%
+  pivot_wider(names_from = month, values_from = value) %>%
+  arrange(desc(year))
+
+head(NHPI_table3)
+```
+
+
+
+using `dplyr::rowwise()`
+
+* https://community.rstudio.com/t/dplyr-alternatives-to-rowwise/8071/45
+
+* https://speakerdeck.com/jennybc/row-oriented-workflows-in-r-with-the-tidyverse
+
+  - https://github.com/jennybc/row-oriented-workflows
+
+  - https://github.com/jennybc/row-oriented-workflows/blob/master/ex09_row-summaries.md
+
+* https://github.com/tidyverse/dplyr/issues/4767 
+
+
+
+```{r table4}
+
+NHPI_table4 <- NHPI_table %>%
+  rowwise() %>% 
+  mutate(annual_avg = mean(c(Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec), na.rm = TRUE))
+
+head(NHPI_table4)
+
+```
+
+
+***
+
+## COMMUNICATE - table
+
+### table: monthly summary
+
+One way we often communicate the data is through a summary table. 
+
+This code produces a table with the B.C. data, and then formats it ready for publication.
+
+```{r}
+
+tbl_month_BC <-
+thedata_BC_Can %>%
+  filter(geo == "British Columbia") %>%
+  arrange(ref_date) %>%
+  # calculate percent change stats
+  get_mom_stats() %>%
+  get_yoy_stats() %>%
+  # pull year and month
+  mutate(year = year(ref_date),
+         month = month(ref_date, label = TRUE)) %>%
+  # select relevant columns, rename as necessary
+  select(year, month, value, 
+         "from previous month" = mom_chg, 
+         "from same month, previous year" = yoy_chg) %>%
+  arrange(desc(year), desc(month)) %>%
+  # just print rows 1 to 13
+  slice(1:13)
+
+# print table with {kableExtra} formatting  
+tbl_month_BC %>%
+  kable(caption = "NHPI, British Columbia", digits = 1) %>%
+  kable_styling(bootstrap_options = "striped") %>%
+  row_spec(0, bold = T, font_size = 14) %>%
+  row_spec(1, bold = T) %>%
+  add_header_above(c(" " = 3, "index point change" = 2), font_size = 14)
+  
+```
+
+
+### text
+
+pull B.C. values for latest month
+
+```{r}
+# filter a B.C.-only data frame
+
+thedata_BC <- thedata_BC_Can %>%
+  filter(geo == "British Columbia") %>%
+  arrange(ref_date) %>%
+  # calculate percent change stats
+  get_mom_stats() %>%
+  get_yoy_stats()
+
+# determine most recent month
+
+latest_ref_date <- max(thedata_BC$ref_date)
+
+this_month <- month(latest_ref_date, label = TRUE)
+this_year <- year(latest_ref_date)
+
+this_month_nhpi <- thedata_BC %>%
+  filter(ref_date == latest_ref_date) %>%
+  pull(value)
+this_month_mom <- thedata_BC %>%
+  filter(ref_date == latest_ref_date) %>%
+  pull(mom_chg)
+this_month_yoy <- thedata_BC %>%
+  filter(ref_date == latest_ref_date) %>%
+  pull(yoy_chg)
+```
+
+Our text:
+
+> In `r this_month` `r this_year`, the New Housing Price Index for British Columbia was `r this_month_nhpi`.
+> This was a change of `r this_month_mom` compared to the previous month, and `r this_month_yoy` year-over-year.
+
+
+
+--- 
+
+## UNDERSTAND
+
+### Visualize - plot
+
+
+Making a plot of your data is often a good way to understand what the data can tell us, and helps us think about the story in the data. In this case, we will make a basic plot with just a few lines of code.
+
+```{r}
+# PLOT!
+# basic
+ggplot(thedata_BC_Can, aes(x=ref_date, y=value, group=geo)) + 
+  geom_line()
+```
+
+We can make it a little more presentable with some additional formatting
+
+```{r}
+
+#
+# with formatting applied
+dataplot <- ggplot(thedata_BC_Can, aes(x=ref_date, y=value, colour=geo)) + 
+  geom_line(size=1.5) 
+dataplot
+
+```
+
+And with even more formatting it's starting to look like something we could publish.
+
+```{r}
+dataplot2 <- dataplot +
+  scale_x_date(date_breaks = "2 years", labels = year) +
+  scale_y_continuous(labels = comma, limits = c(80, 120)) +
+  scale_colour_manual(name=NULL,
+                      breaks=c("Canada", "British Columbia"),
+                      labels=c("Canada", "British Columbia"), 
+                      values=c("#325A80", "#CCB550")) +
+  bcstats_chart_theme
+
+```
+
+
+Just a reminder: all of the code below is what's in the `bcstats_chart_theme`--the last line in the code chunk above. 
+
+If we were to make more than one copy of the plot, we would have to repeat this every time. And if we made more than one copy of the plot, we would have to make the same change in every place. 
+
+By assigning all of this code to the object `bcstats_chart_theme`, we can make a change in one place, and it will carry through all of the times we need it.
+
+
+```{r}
+#  theme_bw() +
+#  theme(
+#    panel.border = element_rect(colour="white"),
+#    plot.title = element_text(face="bold"),
+#    legend.position=c(1,0), 
+#    legend.justification=c(1,0),
+#    legend.title = element_text(size=12),
+#    legend.text = element_text(size=11),
+#    axis.line = element_line(colour="black"),
+#    axis.title = element_text(size=12),
+#    axis.text = element_text(size=12)
+#  )
+#
+dataplot2 
+```
+
+## COMMUNICATE - plot
+
+Let's finish our formatting...
+
+
+```{r}
+# experiments with ggplot2's new subtitle and caption options
+NHPI_title <- as.character("New Housing Price Index, Canada & B.C.")
+NHPI_subtitle <- as.character("December 2016 = 100")
+NHPI_caption <- as.character("Source: Statistics Canada, CANSIM table 18-10-0205-01")
+# add titles / X-Y axis labels
+NHPI_plot <- dataplot2 +
+  labs(title = NHPI_title,
+       subtitle = NHPI_subtitle,
+       caption = NHPI_caption, 
+       x = NULL, y = "NHPI (Dec. 2016 = 100)") 
+NHPI_plot
+ggsave(filename = "NHPI_plot.png", plot = NHPI_plot,
+       width = 8, height = 6)
+```
+
+
+***
+
+## REPEAT WITH DIFFERENT VALUES
+
+### Vancouver house and land version
+
+Now we've set up the B.C. comparison to Canada, we can quickly adapt our previous work to look at another region--in this case, a deeper dive into Vancouver, comparing the changes in the "land" and "house" components of the NHPI.
+
+```{r}
+startdate <- as.Date("2007-01-01")
+
+# filter the original data to have Vancouver
+thedata_YVR <- thedata %>%
+  filter(ref_date >= startdate) %>%
+  filter(geo %in% c("Vancouver, British Columbia"), 
+         new_housing_price_indexes %in% c("House only", "Land only")) %>%
+  arrange(desc(ref_date))
+
+thedata_YVR
+```
+
+the plot
+
+```{r}
+
+NHPI_title <- as.character("New Housing Price Index, Vancouver: house and land")
+NHPI_subtitle <- as.character("December 2016 = 100")
+NHPI_caption <- as.character("Source: Statistics Canada, CANSIM table 18-10-0205-01")
+
+# with formatting applied
+NHPI_Vancouver_plot <- 
+  ggplot(thedata_YVR, aes(x=ref_date, y=value,
+                           colour=new_housing_price_indexes)) + 
+  geom_line(size=1.5) +
+  #
+  scale_x_date(date_breaks = "2 years", labels = year) +
+  scale_y_continuous(labels = comma, limits = c(80, 120)) +
+  scale_colour_manual(name=NULL,
+                      breaks=c("House only", "Land only"),
+                      labels=c("House only", "Land only"), 
+                      values=c("#325A80", "#CCB550")) +
+  bcstats_chart_theme +
+  # set chart titles and labels
+  labs(title = NHPI_title,
+       subtitle = NHPI_subtitle,
+       caption = NHPI_caption, 
+       x = NULL, y = "NHPI (Dec. 2016 = 100)") 
+
+NHPI_Vancouver_plot
+
+```
+
+
