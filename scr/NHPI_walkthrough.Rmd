@@ -38,7 +38,7 @@ This set of scripts creates summary tables and graphs plotting the New Housing P
 
 Our end point will be this chart:
 
-![New Housing Price Index, B.C. and Canada](NHPI_plot_800.png)
+![New Housing Price Index, B.C. and Canada](NHPI_plot.png)
 
 The original source code, created by Martin Monkman with contributions by Julie Hawkins and Stephanie Yurchak, can be found here:  https://github.com/bcgov/CANSIM-dataviewer/blob/master/scr/NHPI_cansim.Rmd
 
