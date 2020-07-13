@@ -1,0 +1,149 @@
+---
+title: "Unemployment in British Columbia"
+subtitle: "historic trend"
+output: html_notebook
+---
+
+
+```{r setup}
+library(tidyverse)
+library(glue)
+library(lubridate)
+library(readxl)
+
+library(cansim)
+```
+
+## LFS data by CMA
+
+Note: CMA-level data starts in 2001
+
+Labour force characteristics by census metropolitan area, annual 1
+Frequency: Annual
+
+Table: 14-10-0096-01 (formerly CANSIM 282-0129)
+
+Geography: Census metropolitan area, Census metropolitan area part
+
+
+
+Labour force characteristics by census metropolitan area, three-month moving average, seasonally adjusted (x 1,000)
+Frequency: Monthly
+
+Table: 14-10-0294-02
+
+Geography: Canada, Province or territory, Census metropolitan area, Census metropolitan area part
+
+https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410029402
+
+
+
+```{r}
+
+df_1410029402 <- cansim::get_cansim("14-10-0294-02")
+
+df_1410029402 <-
+df_1410029402 %>% 
+  janitor::clean_names()
+
+unique(df_1410029402$geo)
+
+bc_list <- c("British Columbia", "Victoria, British Columbia")
+
+# filter BC employment at 2 digit NOC
+df_lfs_bc <- df_1410029402 %>% 
+  filter(geo %in% bc_list,
+         labour_force_characteristics == "Unemployment")
+
+```
+
+
+## LFS, by province
+
+
+
+Labour force characteristics by province, monthly, seasonally adjusted1 2 3
+Frequency: Monthly
+
+Table: 14-10-0287-03
+
+Geography: Canada, Province or territory
+
+
+
+Labour force characteristics by province, monthly, seasonally adjusted 1 2 3
+Frequency: Monthly
+
+Table: 14-10-0287-03
+
+Geography: Canada, Province or territory
+
+
+
+```{r}
+
+df_1410028703 <- cansim::get_cansim("14-10-0287-03")
+
+df_1410028703 <-
+df_1410028703 %>% 
+  janitor::clean_names()
+
+unique(df_1410028703$geo)
+unique(df_1410028703$labour_force_characteristics)
+
+
+# filter BC employment at 2 digit NOC
+df_lfs_bc <- df_1410028703 %>% 
+  filter(geo == "British Columbia",
+         labour_force_characteristics == "Unemployment rate")
+
+```
+
+single vector
+
+```{r}
+
+df_bc_unem_sa <- cansim::get_cansim_vector("v2064705", "1976-01-01")
+
+df_bc_unem_sa <- janitor::clean_names(df_bc_unem_sa)
+
+df_bc_unem_sa <- df_bc_unem_sa %>% 
+  mutate(ref_date = ymd(ref_date))  
+
+
+```
+
+
+```{r}
+
+p <- ggplot(df_bc_unem_sa, aes(x = ref_date, y = value)) +
+  geom_line() +
+  labs(title = "Unemployment rate: British Columbia",
+       subtitle = "Seasonally adjusted",
+       caption = "Source: Statistics Canada, Table 14-10-0287-03 v2064705",
+       x = element_blank(),
+       y = "percent unemployed"
+  ) +
+  ylim(0, 16)
+
+p +
+  annotate("rect", 
+           xmin = ymd("1982-07-01"), xmax = ymd("1986-04-01"),
+           ymin = 0, ymax = 16,
+           fill = "blue", alpha = 0.1) +
+  annotate("text", label = "44 consecutive months of unemployment of 13% or higher",
+           x = ymd("1990-01-01"),
+           y = 2.5,
+           colour = "blue", alpha = 0.5,
+           hjust = 0.0,
+           size = 3) +
+  annotate("segment",
+           xend = ymd("1986-06-01"), x = ymd("1989-10-01"),
+           y = 2.5, yend = 2.5,
+           colour = "blue", size = 1.25, alpha = 0.5,
+           arrow=arrow(), lineend = "round", linejoin = "mitre")
+
+ggsave("BC_unemployment.png")
+
+```
+
