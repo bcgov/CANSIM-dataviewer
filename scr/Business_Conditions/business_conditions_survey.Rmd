@@ -1,0 +1,73 @@
+---
+title: "Business Conditions Survey"
+subtitle: "COVID response"
+output: html_notebook
+---
+
+
+```{r setup}
+library(tidyverse)
+library(glue)
+library(lubridate)
+library(readxl)
+
+library(cansim)
+```
+
+## Business Conditions Survey: COVID
+
+### Data tables
+
+[comprehensive list of pandemic-related business conditions survey tables](https://www150.statcan.gc.ca/n1/daily-quotidien/200714/dq200714a-cansim-eng.htm)
+
+Personal protective equipment or supply needs, by business characteristics1 2
+Frequency: Occasional Monthly
+
+Table: 33-10-0259-01
+
+Geography: Canada
+https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3310025901
+
+
+Difficulty procuring personal protective equipment or supplies, by business characteristics1 2
+Frequency: Occasional Monthly
+
+Table: 33-10-0260-01
+
+Geography: Canada
+https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3310026001
+
+
+
+Sources of personal protective equipment or supplies, by business characteristics1 2
+Frequency: Occasional Monthly
+
+Table: 33-10-0261-01
+
+Geography: Canada
+
+
+
+```{r}
+
+df_3310025901 <- cansim::get_cansim("33-10-0259-01")
+
+df_3310025901 <-
+df_3310025901 %>% 
+  janitor::clean_names()
+
+
+df_3310026001 <- cansim::get_cansim("33-10-0260-01")
+
+df_3310026001 <-
+df_3310026001 %>% 
+  janitor::clean_names()
+
+
+df_3310026101 <- cansim::get_cansim("33-10-0261-01")
+
+df_3310026101 <-
+df_3310026101 %>% 
+  janitor::clean_names()
+
+```
