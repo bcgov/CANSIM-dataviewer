@@ -1,7 +1,9 @@
 ---
 title: "Business Conditions Survey"
-subtitle: "COVID response"
-output: html_notebook
+subtitle: COVID response
+output:
+  html_document:
+    df_print: paged
 ---
 
 
@@ -69,5 +71,56 @@ df_3310026101 <- cansim::get_cansim("33-10-0261-01")
 df_3310026101 <-
 df_3310026101 %>% 
   janitor::clean_names()
+
+```
+
+
+### personal_protective_equipment_or_supplies_businesses_need_or_expect_to_need
+ 
+
+British Columbia
+
+```{r}
+
+df_3310025901 %>%
+  filter(business_characteristics == "British Columbia") %>% 
+  select(personal_protective_equipment_or_supplies_businesses_need_or_expect_to_need,
+         value)
+
+```
+
+## Businesses experiencing or expecting to experience difficulty procuring protective equipment or supplies
+
+British Columbia
+
+```{r}
+
+df_3310026001 %>%
+  filter(business_characteristics == "British Columbia") %>% 
+  select(businesses_experiencing_or_expecting_to_experience_difficulty_procuring_protective_equipment_or_supplies)
+
+```
+
+British Columbia
+
+(also by a variety of other characteristics, including industy sector (2 digit NAICS), number of employees, ownership characteristic, exporter profile--but no crosstabs)
+
+```{r}
+
+unique(df_3310026001$business_characteristics)
+
+df_3310026001 %>%
+  filter(business_characteristics == "British Columbia") %>% 
+  select(businesses_experiencing_or_expecting_to_experience_difficulty_procuring_protective_equipment_or_supplies, value)
+
+```
+
+## source_s_from_which_businesses_have_obtained_or_expect_to_obtain_personal_protective_equipment
+
+```{r}
+
+df_3310026101 %>%
+  filter(business_characteristics == "British Columbia") %>% 
+  select(source_s_from_which_businesses_have_obtained_or_expect_to_obtain_personal_protective_equipment_or_supplies, value)
 
 ```
