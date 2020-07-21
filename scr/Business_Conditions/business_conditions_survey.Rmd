@@ -18,6 +18,14 @@ library(cansim)
 
 ## Business Conditions Survey: COVID
 
+
+[The Daily: Canadian Survey on Business Conditions: Impact of COVID-19 on businesses in Canada, May 2020](https://www150.statcan.gc.ca/n1/daily-quotidien/200714/dq200714a-eng.htm)
+
+Meta details
+https://www23.statcan.gc.ca/imdb/p2SV.pl?Function=getSurvey&SDDS=5318
+
+
+
 ### Data tables
 
 [comprehensive list of pandemic-related business conditions survey tables](https://www150.statcan.gc.ca/n1/daily-quotidien/200714/dq200714a-cansim-eng.htm)
