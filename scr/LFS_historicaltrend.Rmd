@@ -143,7 +143,29 @@ p +
            colour = "blue", size = 1.25, alpha = 0.5,
            arrow=arrow(), lineend = "round", linejoin = "mitre")
 
-ggsave("BC_unemployment.png")
+ggsave("BC_unemployment_1976-to-present.png")
+
+```
+
+
+Start 2000
+
+```{r}
+
+df_bc_unem_sa %>% 
+  filter(ref_date >= "2000-01-01") %>% 
+  ggplot(aes(x = ref_date, y = value)) +
+  geom_line() +
+  labs(title = "Unemployment rate: British Columbia",
+       subtitle = "Seasonally adjusted",
+       caption = "Source: Statistics Canada, Table 14-10-0287-03 v2064705",
+       x = element_blank(),
+       y = "percent unemployed"
+  ) +
+  ylim(0, 16)
+
+ggsave("BC_unemployment_2000-to-present.png")
+
 
 ```
 
