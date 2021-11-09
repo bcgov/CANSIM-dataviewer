@@ -1,0 +1,45 @@
+---
+title: "Busisness Conditions"
+author: "Martin Monkman"
+date: "20/09/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## COVID-related impact on business
+
+DAILY:
+https://www150.statcan.gc.ca/n1/pub/45-28-0001/2021001/article/00009-eng.htm
+
+
+DATA:
+COVID-19 impact on business or organization status, by business characteristics, first quarter of 20211, 2, 3
+Frequency: Occasional
+
+Table: 33-10-0309-01
+
+Release date: 2021-03-05
+
+Geography: Canada, Province or territory
+
+https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3310030901&pickMembers%5B0%5D=1.11
+
+https://www150.statcan.gc.ca/n1/en/type/data?text=COVID-19+impact+on+business+or+organization+status%2C+by+business+characteristics
+
+DAILY:  
+
+
+
+---
+
+https://www150.statcan.gc.ca/n1/daily-quotidien/200819/dq200819c-eng.htm
+
+Study: Economic impact of the COVID-19 pandemic on Canadian businesses across firm size classes
+  
+Released: 2020-08-19
+
+---
+
