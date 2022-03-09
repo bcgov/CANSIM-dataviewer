@@ -1,0 +1,44 @@
+---
+title: "components of population change"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# packages
+library(tidyverse)
+#
+library(cansim)
+library(janitor)
+```
+
+objective: code to create two CSV files, with migration by development region and regional district
+
+published to BC Data Catalogue here:
+
+* https://catalogue.data.gov.bc.ca/dataset/migration-by-development-region-and-regional-district
+
+
+## source
+
+https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1710014001
+
+Components of population change by census division, 2016 boundaries1, 2, 3, 4, 5
+Frequency: Annual
+
+Table: 17-10-0140-01
+
+Release date: 2022-01-13
+
+Geography: Province or territory, Census division
+
+
+```{r}
+
+df_components <- get_cansim("17-10-0140-01")
+
+```
+
+
+
