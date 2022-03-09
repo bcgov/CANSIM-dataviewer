@@ -10,7 +10,12 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 #
 library(cansim)
+#
+library(here)
+here()
+
 library(janitor)
+
 ```
 
 objective: code to create two CSV files, with migration by development region and regional district
@@ -35,10 +40,69 @@ Geography: Province or territory, Census division
 
 
 ```{r}
+## bogs down
 
-df_components <- get_cansim("17-10-0140-01")
+#table_num <- "17-10-0140-01"
+#  
+#get_cansim_table_overview(table_num)
+#
+#df_components <- get_cansim(table_num)
+#
+```
+
+18.4 million rows, 17 columns ... takes a moment
+
+```{r}
+#df_components <- read_csv(here("data", "17100140-eng", "17100140.csv"))
+#
+#df_components <- df_components %>% 
+#  janitor::clean_names()
+#
+#write_rds(df_components, here("data", "17100140-eng", "17100140.rds"))
+
+df_components <- read_rds(here("data", "17100140-eng", "17100140.rds"))
 
 ```
 
+```{r}
+ls.str(df_components)
+```
 
+filter for BC total
+
+```{r}
+df_components_bc <- df_components %>% 
+  filter(geo == "British Columbia")
+
+df_components_bc
+
+write_rds(df_components_bc, here("data", "17100140-eng", "df_components_bc.rds"))
+
+df_components_bc <- read_rds(here("data", "17100140-eng", "df_components_bc.rds"))
+
+
+```
+
+filter for BC regional districts
+
+```{r}
+df_components_bc_cd <- df_components %>% 
+  filter(str_ends(geo, ", British Columbia"))
+
+write_rds(df_components_bc_cd, here("data", "17100140-eng", "df_components_bc_cd.rds"))
+
+```
+
+## read BC regional districts
+
+```{r}
+
+df_components_bc_cd <- read_rds(here("data", "17100140-eng", "df_components_bc_cd.rds"))
+
+max(df_components_bc_cd$ref_date)
+
+df_components_bc_cd %>% 
+  filter(ref_date == "2020/2021")
+  
+```
 
