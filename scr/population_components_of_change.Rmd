@@ -3,7 +3,7 @@ title: "components of population change"
 output: html_document
 ---
 
-```{r, include=FALSE}
+```{r}
 # packages
 library(tidyverse)
 #
@@ -142,7 +142,7 @@ drop births and deaths
 
 df_components_bc_cd_crd06 <- df_components_bc_cd %>% 
   filter(ref_date == "2006/2007") %>% 
-  filter(str_starts(geo, "Capital")) %>%
+  filter(sgc == 5917) %>%
   #
   filter(age_group == "All ages") %>% 
   filter(sex == "Both sexes") %>% 
@@ -160,7 +160,9 @@ Now pivot that sucker and see how it compares to the posted CSV file...
 ```{r}
 
 df_components_bc_cd_crd06 %>% 
-  select(ref_date, SGC, geo, )
+  select(ref_date, sgc, geo, components_of_population_growth, value) %>% 
+  pivot_wider(names_from = components_of_population_growth,
+              values_from = value)
 ```
 
 ## Development Region
