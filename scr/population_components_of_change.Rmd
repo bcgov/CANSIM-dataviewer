@@ -3,9 +3,7 @@ title: "components of population change"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
+```{r, include=FALSE}
 # packages
 library(tidyverse)
 #
@@ -18,14 +16,16 @@ library(janitor)
 
 ```
 
-objective: code to create two CSV files, with migration by development region and regional district
+objective: code to create two CSV files, with migration by regional district and development region
 
 published to BC Data Catalogue here:
 
 * https://catalogue.data.gov.bc.ca/dataset/migration-by-development-region-and-regional-district
 
 
-## source
+## Regional District
+
+### source
 
 https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1710014001
 
@@ -39,7 +39,7 @@ Release date: 2022-01-13
 Geography: Province or territory, Census division
 
 
-```{r}
+```{r read_cansim}
 ## bogs down
 
 #table_num <- "17-10-0140-01"
@@ -52,25 +52,23 @@ Geography: Province or territory, Census division
 
 18.4 million rows, 17 columns ... takes a moment
 
-```{r}
-#df_components <- read_csv(here("data", "17100140-eng", "17100140.csv"))
-#
-#df_components <- df_components %>% 
-#  janitor::clean_names()
-#
-#write_rds(df_components, here("data", "17100140-eng", "17100140.rds"))
+NOTE: turned off as R chunk ... to run, re-insert the ` ```{r} ` initiation
+
+```
+
+df_components <- read_csv(here("data", "17100140-eng", "17100140.csv"))
+
+df_components <- df_components %>% 
+  janitor::clean_names()
+
+write_rds(df_components, here("data", "17100140-eng", "17100140.rds"))
 
 df_components <- read_rds(here("data", "17100140-eng", "17100140.rds"))
 
-```
-
-```{r}
 ls.str(df_components)
-```
 
-filter for BC total
+### filter for BC total
 
-```{r}
 df_components_bc <- df_components %>% 
   filter(geo == "British Columbia")
 
@@ -81,28 +79,100 @@ write_rds(df_components_bc, here("data", "17100140-eng", "df_components_bc.rds")
 df_components_bc <- read_rds(here("data", "17100140-eng", "df_components_bc.rds"))
 
 
+### filter for regional districts
+
+df_components_bc_cd <- df_components %>% 
+  filter(str_ends(geo, ", British Columbia")) %>% 
+  mutate("SGC" = stringr::str_sub(dguid, -4, -1))
+
+
 ```
 
-filter for BC regional districts
+### read BC regional districts
 
-```{r}
+
+Regional district number is the last 2 digits of the "dguid" variable -- last 4 digits include the "59" indicating BC. This appears elsewhere as the "SGC" variable.
+
+
+```
+
+# filter for BC regional districts
+
 df_components_bc_cd <- df_components %>% 
-  filter(str_ends(geo, ", British Columbia"))
+  filter(str_ends(geo, ", British Columbia")) %>% 
+  mutate(sgc = stringr::str_sub(dguid, -4, -1))
+  
 
 write_rds(df_components_bc_cd, here("data", "17100140-eng", "df_components_bc_cd.rds"))
 
 ```
 
-## read BC regional districts
 
-```{r}
+```{r read_cd}
 
 df_components_bc_cd <- read_rds(here("data", "17100140-eng", "df_components_bc_cd.rds"))
 
 max(df_components_bc_cd$ref_date)
 
-df_components_bc_cd %>% 
-  filter(ref_date == "2020/2021")
-  
 ```
+
+
+just for fun, filter for max year and Capital 
+
+```{r}
+df_components_bc_cd %>% 
+  filter(ref_date == "2020/2021") %>% 
+  filter(str_starts(geo, "Capital")) 
+
+```
+
+2742 rows! Yikes
+
+```{r}
+
+# what are the "components_of_population_growth"?
+
+unique(df_components_bc_cd$components_of_population_growth)
+
+```
+
+drop births and deaths
+
+```{r}
+
+df_components_bc_cd_crd06 <- df_components_bc_cd %>% 
+  filter(ref_date == "2006/2007") %>% 
+  filter(str_starts(geo, "Capital")) %>%
+  #
+  filter(age_group == "All ages") %>% 
+  filter(sex == "Both sexes") %>% 
+  #
+  filter(components_of_population_growth != "Residual deviation") %>% 
+  filter(components_of_population_growth != "Births") %>% 
+  filter(components_of_population_growth != "Deaths") 
+
+df_components_bc_cd_crd06
+
+```
+
+Now pivot that sucker and see how it compares to the posted CSV file...
+
+```{r}
+
+df_components_bc_cd_crd06 %>% 
+  select(ref_date, SGC, geo, )
+```
+
+## Development Region
+
+https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1710013801
+
+Components of population change by economic region, 2016 boundaries1, 2, 3, 4, 5
+Frequency: Annual
+
+Table: 17-10-0138-01
+
+Release date: 2022-01-13
+
+Geography: Province or territory, Economic region
 
