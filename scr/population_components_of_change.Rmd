@@ -23,6 +23,13 @@ published to BC Data Catalogue here:
 * https://catalogue.data.gov.bc.ca/dataset/migration-by-development-region-and-regional-district
 
 
+reference:
+
+* https://catalogue.data.gov.bc.ca/dataset/inter-provincial-and-international-migration
+
+For international data, total number of individuals leaving BC = Emigrants + Net Temporary Emigrants – Returning Emigrants. 
+Total number moving to BC = International Immigrants + Net Non Permanent Residents.
+
 ## Regional District
 
 ### source
