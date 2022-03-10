@@ -2,12 +2,28 @@
 title: "components of population change"
 output: html_document
 ---
+<!--
+Copyright 2022 Province of British Columbia
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and limitations under the License.
+-->
+
+
+
 
 ```{r}
 # packages
 library(tidyverse)
 #
-library(cansim)
+#library(cansim)  # didn't use it in the end--still a possiblity
 #
 library(here)
 here()
@@ -32,7 +48,7 @@ Total number moving to BC = International Immigrants + Net Non Permanent Residen
 
 ## Regional District
 
-### source
+### source daata
 
 https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1710014001
 
@@ -57,9 +73,23 @@ Geography: Province or territory, Census division
 #
 ```
 
+
+Download the data files using the 
+
+* "Download options" button
+
+* "CSV / Download entire table "Components ..."
+
+Unzip to sub-folder that has the same name as the zip file.
+
+
+
 18.4 million rows, 17 columns ... takes a moment
 
-NOTE: turned off as R chunk ... to run, re-insert the ` ```{r} ` initiation
+Read file, filter for BC, add "sgc" variable (province [59] & region code)
+
+
+NOTE: turned off as R chunk ... to run, select lines and <ctrl><enter>
 
 ```
 
@@ -99,6 +129,8 @@ df_components_bc_cd <- df_components %>%
 
 
 Regional district number is the last 2 digits of the "dguid" variable -- last 4 digits include the "59" indicating BC. This appears elsewhere as the "SGC" variable.
+
+NOTE: this version of the regional district table excludes the BC provincial total. For that, see the development region version.
 
 
 ```
@@ -143,7 +175,7 @@ unique(df_components_bc_cd$components_of_population_growth)
 
 ```
 
-drop births and deaths
+drop births and deaths, residual deviation
 
 ```{r}
 
@@ -169,8 +201,116 @@ Now pivot that sucker and see how it compares to the posted CSV file...
 df_components_bc_cd_crd06 %>% 
   select(ref_date, sgc, geo, components_of_population_growth, value) %>% 
   pivot_wider(names_from = components_of_population_growth,
-              values_from = value)
+              values_from = value) %>% 
+  janitor::clean_names()
 ```
+
+
+Add the other columns 
+
+NOTE: the source table from StatCan does not include the "inter_" and "intra_" / "in" and "out" -- just the net. This may be a change in what StatCan publishes, and requires further investigation.
+
+
+For international data, 
+
+* total number of individuals leaving BC = Emigrants + Net Temporary Emigrants – Returning Emigrants. 
+
+* total number moving to BC = International Immigrants + Net Non Permanent Residents.
+
+(See the `mutate()` functions below.)
+
+```{r}
+
+df_components_bc_cd_crd06 %>%
+  select(ref_date, sgc, geo, components_of_population_growth, value) %>%
+  pivot_wider(names_from = components_of_population_growth,
+              values_from = value) %>%
+  janitor::clean_names() %>%
+  #
+  mutate(
+    net_international_migrants =
+      immigrants -
+      emigrants -
+      net_temporary_emigration +
+      returning_emigrants +
+      net_non_permanent_residents
+  )  %>%
+  mutate(
+    total_net_migrants =
+      net_international_migrants +
+      net_interprovincial_migration +
+      net_intraprovincial_migration
+  )
+
+
+```
+
+
+```{r}
+
+
+df_components_bc_cd_final <- df_components_bc_cd %>%
+  # summarize to compare to published tables
+  #  filter(ref_date == "2006/2007") %>%
+  #  filter(sgc == 5917) %>%
+  #
+  filter(age_group == "All ages") %>%
+  filter(sex == "Both sexes") %>%
+  #
+  filter(components_of_population_growth != "Residual deviation") %>%
+  filter(components_of_population_growth != "Births") %>%
+  filter(components_of_population_growth != "Deaths") %>%
+  #
+  # pivot
+  select(ref_date, sgc, geo, components_of_population_growth, value) %>%
+  pivot_wider(names_from = components_of_population_growth,
+              values_from = value) %>%
+  janitor::clean_names() %>%
+  # and calculate additional values
+  mutate(
+    net_international_migrants =
+      immigrants -
+      emigrants -
+      net_temporary_emigration +
+      returning_emigrants +
+      net_non_permanent_residents
+  )  %>%
+  mutate(
+    total_net_migrants =
+      net_international_migrants +
+      net_interprovincial_migration +
+      net_intraprovincial_migration
+  ) %>%
+  #
+  # re-order to fit published table
+  select(
+    ref_date,
+    sgc,
+    geo,
+    immigrants,
+    emigrants,
+    returning_emigrants,
+    net_temporary_emigration,
+    net_non_permanent_residents,
+    net_international_migrants,
+    net_interprovincial_migration,
+    net_intraprovincial_migration,
+    total_net_migrants
+  )
+
+df_components_bc_cd_final
+
+```
+
+write CSV
+
+```{r}
+
+write_csv(df_components_bc_cd_final, here("data", "17100140-eng", "regional_district_migration.csv"))
+
+```
+
+
 
 ## Development Region
 
@@ -184,4 +324,113 @@ Table: 17-10-0138-01
 Release date: 2022-01-13
 
 Geography: Province or territory, Economic region
+
+
+
+### read DR data
+
+```
+
+df_components_dr <- read_csv(here("data", "17100138-eng", "17100138.csv"))
+
+df_components_dr <- df_components_dr %>% 
+  janitor::clean_names()
+
+write_rds(df_components_dr, here("data", "17100138-eng", "17100138.rds"))
+
+df_components_dr <- read_rds(here("data", "17100138-eng", "17100138.rds"))
+
+ls.str(df_components_dr)
+
+
+```
+
+### filter for development regions
+
+NOTE: includes provincial total!
+
+
+
+```{r}
+
+
+df_components_bc_dr <- df_components_dr %>% 
+  filter(str_detect(geo, "British Columbia")) %>% 
+  mutate(sgc = stringr::str_extract(dguid, "59[\\d]?"))
+  
+
+unique(df_components_bc_dr$geo)
+unique(df_components_bc_dr$sgc)
+
+
+```
+
+
+```{r}
+
+
+df_components_bc_dr_final <- df_components_bc_dr %>%
+  # summarize to compare to published tables
+  #  filter(ref_date == "2006/2007") %>%
+  #  filter(sgc == 5917) %>%
+  #
+  filter(age_group == "All ages") %>%
+  filter(sex == "Both sexes") %>%
+  #
+  filter(components_of_population_growth != "Residual deviation") %>%
+  filter(components_of_population_growth != "Births") %>%
+  filter(components_of_population_growth != "Deaths") %>%
+  #
+  # pivot
+  select(ref_date, sgc, geo, components_of_population_growth, value) %>%
+  pivot_wider(names_from = components_of_population_growth,
+              values_from = value) %>%
+  janitor::clean_names() %>%
+  # and calculate additional values
+  mutate(
+    net_international_migrants =
+      immigrants -
+      emigrants -
+      net_temporary_emigration +
+      returning_emigrants +
+      net_non_permanent_residents
+  )  %>%
+  mutate(
+    total_net_migrants =
+      net_international_migrants +
+      net_interprovincial_migration +
+      net_intraprovincial_migration
+  ) %>%
+  #
+  # re-order to fit published table
+  # different than the RD table, dang it!
+  select(
+    ref_date,
+    sgc,
+    geo,
+    immigrants,
+    emigrants,
+    net_non_permanent_residents,
+    returning_emigrants,
+    net_temporary_emigration,
+    net_international_migrants,
+    net_interprovincial_migration,
+    net_intraprovincial_migration,
+    total_net_migrants
+  )
+
+df_components_bc_dr_final %>%
+  filter(ref_date == "2007/2008")
+
+```
+
+
+
+write CSV
+
+```{r}
+
+write_csv(df_components_bc_dr_final, here("data", "17100138-eng", "development_region_migration.csv"))
+
+```
 
